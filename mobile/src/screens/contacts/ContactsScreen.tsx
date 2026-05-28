@@ -40,8 +40,10 @@ export const ContactsScreen = () => {
         <TextInput
           value={search}
           onChangeText={setSearch}
+          autoCorrect={false}
           placeholder="Search contacts"
           placeholderTextColor={theme.placeholder}
+          returnKeyType="search"
           className="h-12 flex-1 text-base text-dark"
         />
       </View>

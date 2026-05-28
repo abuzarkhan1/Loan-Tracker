@@ -20,6 +20,17 @@ export const FormInput = <T extends FieldValues>({
 }: FormInputProps<T>) => {
   const { theme } = useAppTheme();
   const [focused, setFocused] = useState(false);
+  const {
+    autoCorrect,
+    blurOnSubmit,
+    multiline,
+    onBlur: inputOnBlur,
+    onChangeText: inputOnChangeText,
+    onFocus: inputOnFocus,
+    returnKeyType,
+    style: inputStyle,
+    ...restInputProps
+  } = inputProps;
 
   return (
     <View style={{ gap: 6 }}>
@@ -29,9 +40,14 @@ export const FormInput = <T extends FieldValues>({
         name={name}
         render={({ field: { onBlur, onChange, value } }) => (
           <TextInput
+            {...restInputProps}
+            autoCorrect={autoCorrect ?? false}
+            blurOnSubmit={multiline ? false : blurOnSubmit}
+            multiline={multiline}
+            returnKeyType={returnKeyType ?? (multiline ? "default" : "done")}
             style={[
               {
-                minHeight: inputProps.multiline ? 112 : 50,
+                minHeight: multiline ? 112 : 50,
                 borderRadius: 14,
                 borderWidth: 1,
                 borderColor: error ? theme.danger : focused ? theme.primary : theme.border,
@@ -41,19 +57,26 @@ export const FormInput = <T extends FieldValues>({
                 fontSize: 15,
                 paddingHorizontal: 18,
                 paddingVertical: 14,
-                textAlignVertical: inputProps.multiline ? "top" : "center",
+                textAlignVertical: multiline ? "top" : "center",
               },
               focused ? { shadowColor: theme.primary, shadowOpacity: 0.15, shadowRadius: 8, shadowOffset: { width: 0, height: 0 }, elevation: 2 } : null,
+              inputStyle,
             ]}
             placeholderTextColor={theme.placeholder}
             value={value === undefined || value === null ? "" : String(value)}
-            onBlur={() => {
+            onBlur={(event) => {
               setFocused(false);
               onBlur();
+              inputOnBlur?.(event);
             }}
-            onFocus={() => setFocused(true)}
-            onChangeText={onChange}
-            {...inputProps}
+            onFocus={(event) => {
+              setFocused(true);
+              inputOnFocus?.(event);
+            }}
+            onChangeText={(text) => {
+              onChange(text);
+              inputOnChangeText?.(text);
+            }}
           />
         )}
       />

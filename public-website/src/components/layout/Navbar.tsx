@@ -1,11 +1,10 @@
-import { Download, Menu, X } from "lucide-react";
+import { Menu, X } from "lucide-react";
 import { useEffect, useState } from "react";
 import { NavLink, useLocation } from "react-router-dom";
-import { APP_CONFIG } from "../../config/app.config";
 import { navLinks } from "../../content/site.content";
 import { cn } from "../../utils/cn";
 import { BrandMark } from "../common/BrandMark";
-import { ButtonLink } from "../common/ButtonLink";
+import { DownloadApkButton } from "../common/DownloadApkButton";
 import { ThemeToggle } from "../common/ThemeToggle";
 
 const linkClass = ({ isActive }: { isActive: boolean }) =>
@@ -38,9 +37,9 @@ export const Navbar = () => {
 
           <div className="hidden items-center gap-3 lg:flex">
             <ThemeToggle />
-            <ButtonLink href={APP_CONFIG.apkDownloadUrl} icon={Download} size="md">
+            <DownloadApkButton size="md">
               Download APK
-            </ButtonLink>
+            </DownloadApkButton>
           </div>
 
           <div className="flex shrink-0 items-center gap-2 lg:hidden max-[380px]:gap-1.5">
@@ -66,9 +65,9 @@ export const Navbar = () => {
                 </NavLink>
               ))}
             </div>
-            <ButtonLink href={APP_CONFIG.apkDownloadUrl} icon={Download} className="mt-3 w-full">
+            <DownloadApkButton className="mt-3 w-full">
               Download Android APK
-            </ButtonLink>
+            </DownloadApkButton>
           </div>
         ) : null}
       </div>

@@ -1,12 +1,10 @@
-import { ArrowRight } from "lucide-react";
-import { ButtonLink } from "../components/common/ButtonLink";
 import { Card } from "../components/common/Card";
+import { DownloadApkButton } from "../components/common/DownloadApkButton";
 import { PageHero } from "../components/common/PageHero";
 import { SEO } from "../components/common/SEO";
 import { Section } from "../components/common/Section";
 import { FeatureHighlightsSection } from "../components/sections/FeatureHighlightsSection";
 import { TrustSection } from "../components/sections/TrustSection";
-import { APP_CONFIG } from "../config/app.config";
 
 const featureStories = [
   {
@@ -45,9 +43,9 @@ export const Features = () => (
         ))}
       </div>
       <div className="mt-8 flex justify-center">
-        <ButtonLink href={APP_CONFIG.apkDownloadUrl} trailingIcon={ArrowRight} size="lg">
+        <DownloadApkButton size="lg">
           Download Android APK
-        </ButtonLink>
+        </DownloadApkButton>
       </div>
     </Section>
     <TrustSection />

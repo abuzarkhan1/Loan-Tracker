@@ -1,7 +1,7 @@
-import { ArrowRight, Download, ShieldCheck, Sparkles, WalletCards } from "lucide-react";
+import { ArrowRight, ShieldCheck, Sparkles, WalletCards } from "lucide-react";
 import { motion } from "framer-motion";
-import { APP_CONFIG } from "../../config/app.config";
 import { ButtonLink } from "../common/ButtonLink";
+import { DownloadApkButton } from "../common/DownloadApkButton";
 import { Section } from "../common/Section";
 import { AppMockupCluster } from "../mockups/AppMockupCluster";
 
@@ -31,9 +31,9 @@ export const HeroSection = () => (
         </p>
 
         <div className="mt-8 flex flex-col gap-3 sm:flex-row">
-          <ButtonLink href={APP_CONFIG.apkDownloadUrl} icon={Download} size="lg" className="w-full sm:w-auto">
+          <DownloadApkButton size="lg" className="w-full sm:w-auto">
             Download Android APK
-          </ButtonLink>
+          </DownloadApkButton>
           <ButtonLink to="/features" trailingIcon={ArrowRight} variant="secondary" size="lg" className="w-full sm:w-auto">
             Explore Features
           </ButtonLink>

@@ -14,8 +14,8 @@ export const Download = () => (
     />
     <PageHero
       eyebrow="Download"
-      title="Download the Android APK when the build is ready."
-      description="This page is ready for your Expo APK link. Update one config value and every CTA on the website will point to the final download."
+      title="Download the Android APK."
+      description="The official APK is served from the GitHub release link configured once and reused across every download button."
     />
     <DownloadSection full />
     <Section className="pt-2">

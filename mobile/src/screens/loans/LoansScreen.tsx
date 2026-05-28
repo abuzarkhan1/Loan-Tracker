@@ -54,8 +54,10 @@ export const LoansScreen = () => {
         <TextInput
           value={search}
           onChangeText={setSearch}
+          autoCorrect={false}
           placeholder="Search loans"
           placeholderTextColor={theme.placeholder}
+          returnKeyType="search"
           className="h-12 flex-1 text-base text-dark"
         />
       </View>

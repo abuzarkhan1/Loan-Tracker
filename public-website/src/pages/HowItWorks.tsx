@@ -1,12 +1,10 @@
-import { Download } from "lucide-react";
-import { ButtonLink } from "../components/common/ButtonLink";
 import { Card } from "../components/common/Card";
+import { DownloadApkButton } from "../components/common/DownloadApkButton";
 import { PageHero } from "../components/common/PageHero";
 import { SEO } from "../components/common/SEO";
 import { Section } from "../components/common/Section";
 import { AppPreviewSection } from "../components/sections/AppPreviewSection";
 import { HowItWorksSection } from "../components/sections/HowItWorksSection";
-import { APP_CONFIG } from "../config/app.config";
 
 export const HowItWorks = () => (
   <>
@@ -26,9 +24,9 @@ export const HowItWorks = () => (
         <p className="mx-auto mt-4 max-w-2xl text-sm font-medium leading-7 text-muted">
           Download the Android APK, create your account, and start with your first contact and loan entry.
         </p>
-        <ButtonLink href={APP_CONFIG.apkDownloadUrl} icon={Download} className="mt-7">
+        <DownloadApkButton className="mt-7">
           Download Android APK
-        </ButtonLink>
+        </DownloadApkButton>
       </Card>
     </Section>
     <AppPreviewSection />

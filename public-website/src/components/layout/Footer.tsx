@@ -1,9 +1,9 @@
-import { Download, Mail, MapPin, Smartphone } from "lucide-react";
+import { Mail, MapPin, Smartphone } from "lucide-react";
 import { Link } from "react-router-dom";
 import { APP_CONFIG } from "../../config/app.config";
 import { navLinks } from "../../content/site.content";
 import { BrandMark } from "../common/BrandMark";
-import { ButtonLink } from "../common/ButtonLink";
+import { DownloadApkButton } from "../common/DownloadApkButton";
 
 const legalLinks = [
   { label: "Privacy Policy", href: "/privacy-policy" },
@@ -19,9 +19,9 @@ export const Footer = () => (
           <p className="mt-5 max-w-sm text-sm font-medium leading-7 text-[#a89fb0]">
             A premium personal loan tracker for contacts, repayments, remaining balances, and clean financial summaries.
           </p>
-          <ButtonLink href={APP_CONFIG.apkDownloadUrl} icon={Download} className="mt-6">
+          <DownloadApkButton className="mt-6">
             Download APK
-          </ButtonLink>
+          </DownloadApkButton>
         </div>
 
         <div>

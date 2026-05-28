@@ -1,7 +1,7 @@
-import { Download, Smartphone } from "lucide-react";
+import { Smartphone } from "lucide-react";
 import { APP_CONFIG } from "../../config/app.config";
-import { ButtonLink } from "../common/ButtonLink";
 import { Card } from "../common/Card";
+import { DownloadApkButton } from "../common/DownloadApkButton";
 import { Section } from "../common/Section";
 import { SectionHeader } from "../common/SectionHeader";
 
@@ -19,7 +19,7 @@ export const DownloadSection = ({ full = false }: { full?: boolean }) => (
         align="left"
         eyebrow="Download APK"
         title="Install Loan Tracker on Android and keep every loan clear."
-        description="The APK link is intentionally centralized in one config file, so you can update the final build URL when your Expo Android build is ready."
+        description="The APK link is centralized in one config file and currently points to the official GitHub release asset."
       />
 
       <Card className="rounded-2xl p-5 sm:p-7">
@@ -33,9 +33,9 @@ export const DownloadSection = ({ full = false }: { full?: boolean }) => (
               <p className="mt-1 text-sm font-bold text-muted">Android app download</p>
             </div>
           </div>
-          <ButtonLink href={APP_CONFIG.apkDownloadUrl} icon={Download} size="lg">
+          <DownloadApkButton size="lg">
             Download Android APK
-          </ButtonLink>
+          </DownloadApkButton>
         </div>
 
         <div className="mt-7 grid gap-3 sm:grid-cols-2">
