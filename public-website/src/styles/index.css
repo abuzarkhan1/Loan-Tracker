@@ -1,0 +1,172 @@
+@font-face {
+  font-family: "Manrope";
+  src: url("../assets/fonts/Manrope_400Regular.ttf") format("truetype");
+  font-weight: 400;
+  font-style: normal;
+  font-display: swap;
+}
+
+@font-face {
+  font-family: "Manrope";
+  src: url("../assets/fonts/Manrope_500Medium.ttf") format("truetype");
+  font-weight: 500;
+  font-style: normal;
+  font-display: swap;
+}
+
+@font-face {
+  font-family: "Manrope";
+  src: url("../assets/fonts/Manrope_600SemiBold.ttf") format("truetype");
+  font-weight: 600;
+  font-style: normal;
+  font-display: swap;
+}
+
+@font-face {
+  font-family: "Manrope";
+  src: url("../assets/fonts/Manrope_700Bold.ttf") format("truetype");
+  font-weight: 700;
+  font-style: normal;
+  font-display: swap;
+}
+
+@font-face {
+  font-family: "Manrope";
+  src: url("../assets/fonts/Manrope_800ExtraBold.ttf") format("truetype");
+  font-weight: 800;
+  font-style: normal;
+  font-display: swap;
+}
+
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+@layer base {
+  :root {
+    --color-background: 255 250 244;
+    --color-background-soft: 255 247 239;
+    --color-card: 255 255 255;
+    --color-input: 255 255 255;
+    --color-text: 37 33 43;
+    --color-muted: 111 101 119;
+    --color-primary: 243 111 86;
+    --color-primary-dark: 217 84 65;
+    --color-success: 27 125 98;
+    --color-warning: 138 109 31;
+    --color-danger: 217 84 65;
+    --color-border: 220 213 207;
+    --color-peach: 255 228 211;
+    --color-mint: 217 241 215;
+    --color-yellow: 255 213 106;
+    --gradient-start: 255 248 240;
+    --gradient-mid: 255 250 244;
+    --gradient-end: 255 255 255;
+  }
+
+  .dark {
+    --color-background: 26 22 31;
+    --color-background-soft: 37 33 43;
+    --color-card: 37 33 43;
+    --color-input: 51 45 58;
+    --color-text: 245 240 235;
+    --color-muted: 168 159 176;
+    --color-primary: 243 111 86;
+    --color-primary-dark: 217 84 65;
+    --color-success: 217 241 215;
+    --color-warning: 255 213 106;
+    --color-danger: 243 111 86;
+    --color-border: 62 56 70;
+    --color-peach: 76 53 51;
+    --color-mint: 40 71 60;
+    --color-yellow: 73 61 35;
+    --gradient-start: 26 22 31;
+    --gradient-mid: 30 26 36;
+    --gradient-end: 37 33 43;
+  }
+
+  * {
+    box-sizing: border-box;
+  }
+
+  html {
+    scroll-behavior: smooth;
+  }
+
+  body {
+    min-width: 320px;
+    min-height: 100vh;
+    margin: 0;
+    background: linear-gradient(135deg, rgb(var(--gradient-start)) 0%, rgb(var(--gradient-mid)) 48%, rgb(var(--gradient-end)) 100%);
+    color: rgb(var(--color-text));
+    font-family: "Manrope", ui-sans-serif, system-ui, sans-serif;
+    font-weight: 500;
+    letter-spacing: 0;
+    text-rendering: geometricPrecision;
+  }
+
+  html,
+  body,
+  #root {
+    max-width: 100%;
+    overflow-x: hidden;
+  }
+
+  a {
+    color: inherit;
+    text-decoration: none;
+  }
+
+  button,
+  input,
+  textarea {
+    font: inherit;
+  }
+
+  ::selection {
+    background: rgb(var(--color-peach));
+    color: rgb(var(--color-text));
+  }
+}
+
+@layer components {
+  .site-shell {
+    background: linear-gradient(135deg, rgb(var(--gradient-start)) 0%, rgb(var(--gradient-mid)) 48%, rgb(var(--gradient-end)) 100%);
+    overflow-x: hidden;
+  }
+
+  .dark .site-shell {
+    background: linear-gradient(135deg, #1a161f 0%, #1e1a24 48%, #25212b 100%);
+  }
+
+  .premium-card {
+    border: 1px solid rgb(var(--color-border));
+    background: rgb(var(--color-card) / 0.92);
+    box-shadow: 0 16px 48px rgba(88, 48, 32, 0.11);
+    backdrop-filter: blur(20px);
+  }
+
+  .dark .premium-card {
+    box-shadow: 0 4px 24px rgba(0, 0, 0, 0.28);
+  }
+
+  .dark .shadow-soft {
+    box-shadow: 0 4px 24px rgba(0, 0, 0, 0.28);
+  }
+
+  .dark .shadow-elevated {
+    box-shadow: 0 12px 40px rgba(0, 0, 0, 0.4);
+  }
+
+  .soft-ring {
+    box-shadow: inset 0 0 0 1px rgb(var(--color-border));
+  }
+
+  .phone-shadow {
+    box-shadow: 0 28px 80px rgba(88, 48, 32, 0.2);
+  }
+
+  .dark .phone-shadow {
+    box-shadow: 0 12px 40px rgba(0, 0, 0, 0.4);
+  }
+}

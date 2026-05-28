@@ -20,7 +20,8 @@
     "updates": {
       "enabled": true,
       "checkAutomatically": "ON_LOAD",
-      "fallbackToCacheTimeout": 0
+      "fallbackToCacheTimeout": 0,
+      "url": "https://u.expo.dev/4875db44-da90-46c5-bf17-46a7b84674de"
     },
     "ios": {
       "bundleIdentifier": "com.abuzar.loantracker",
@@ -86,7 +87,10 @@
       ]
     ],
     "extra": {
-      "previewChannel": "preview"
+      "previewChannel": "preview",
+      "eas": {
+        "projectId": "4875db44-da90-46c5-bf17-46a7b84674de"
+      }
     }
   }
 }

@@ -1,0 +1,38 @@
+export const THEME_TOKENS = {
+  light: {
+    background: "#fffaf4",
+    backgroundSoft: "#fff7ef",
+    card: "#ffffff",
+    input: "#ffffff",
+    text: "#25212b",
+    muted: "#6f6577",
+    primary: "#f36f56",
+    primaryDark: "#d95441",
+    success: "#1b7d62",
+    warning: "#8a6d1f",
+    danger: "#d95441",
+    peach: "#ffe4d3",
+    mint: "#d9f1d7",
+    yellow: "#ffd56a",
+    border: "rgba(80, 61, 52, 0.14)",
+  },
+  dark: {
+    background: "#1a161f",
+    backgroundSoft: "#25212b",
+    card: "#25212b",
+    input: "#332d3a",
+    text: "#f5f0eb",
+    muted: "#a89fb0",
+    primary: "#f36f56",
+    primaryDark: "#d95441",
+    success: "#d9f1d7",
+    warning: "#ffd56a",
+    danger: "#f36f56",
+    peach: "#4c3533",
+    mint: "#28473c",
+    yellow: "#493d23",
+    border: "#3e3846",
+  },
+} as const;
+
+export type ThemeMode = keyof typeof THEME_TOKENS;
