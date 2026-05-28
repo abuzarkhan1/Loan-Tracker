@@ -14,47 +14,67 @@ error()   { echo -e "${RED}[ERROR] $1${NC}"; exit 1; }
 
 # ─── Root check ───────────────────────────────────────────────
 if [ "$EUID" -ne 0 ]; then
-  error "Please run as root: sudo bash loan-tracker-tunnel.sh"
+  error "Please run as root: sudo bash fix-tunnel.sh"
 fi
 
 REAL_USER="${SUDO_USER:-$USER}"
 REAL_HOME=$(eval echo "~$REAL_USER")
 CF_DIR="$REAL_HOME/.cloudflared"
+CONFIG_FILE="$CF_DIR/config.yml"
 
-# ─── Loan Tracker API config ──────────────────────────────────
-API_DOMAIN="api.marenax.site"   # <-- change karo agar alag subdomain chahiye
-API_HOST="localhost"             # API same machine pe hai (host network mode)
-API_PORT=5050
-
-API_SERVICE="http://${API_HOST}:${API_PORT}"
-
-log "Adding $API_DOMAIN → $API_SERVICE to existing oldarena tunnel..."
+OLD_DOMAIN="api.marenax.site"
+NEW_DOMAIN="tracker.marenax.site"
+API_SERVICE="http://localhost:5050"
 
 # ─── Config file check ────────────────────────────────────────
-CONFIG_FILE="$CF_DIR/config.yml"
 if [ ! -f "$CONFIG_FILE" ]; then
-  error "Config not found at $CONFIG_FILE — check path manually."
+  error "Config not found at $CONFIG_FILE"
 fi
 
-# ─── Duplicate check ──────────────────────────────────────────
-if grep -q "$API_DOMAIN" "$CONFIG_FILE"; then
-  warn "$API_DOMAIN already exists in config — skipping inject."
+log "Current config:"
+cat "$CONFIG_FILE"
+echo ""
+
+# ─── Remove old api.marenax.site entry ───────────────────────
+if grep -q "$OLD_DOMAIN" "$CONFIG_FILE"; then
+  log "Removing $OLD_DOMAIN from config..."
+  # Remove the two lines: hostname line and service line for api.marenax.site
+  sed -i "/$OLD_DOMAIN/{N;d;}" "$CONFIG_FILE"
+  success "Removed $OLD_DOMAIN entry."
 else
-  log "Injecting ingress rule into config..."
-  sed -i "/- service: http_status:404/i\\  - hostname: $API_DOMAIN\n    service: $API_SERVICE" "$CONFIG_FILE"
-  success "Ingress rule added."
+  warn "$OLD_DOMAIN not found in config — nothing to remove."
 fi
+
+# ─── Add new tracker.marenax.site entry ──────────────────────
+if grep -q "$NEW_DOMAIN" "$CONFIG_FILE"; then
+  warn "$NEW_DOMAIN already exists in config — skipping inject."
+else
+  log "Injecting $NEW_DOMAIN → $API_SERVICE into config..."
+  sed -i "/- service: http_status:404/i\\  - hostname: $NEW_DOMAIN\n    service: $API_SERVICE" "$CONFIG_FILE"
+  success "Ingress rule added for $NEW_DOMAIN."
+fi
+
+# ─── Show updated config ──────────────────────────────────────
+log "Updated config:"
+cat "$CONFIG_FILE"
+echo ""
 
 # ─── Sync to /etc/cloudflared/ ───────────────────────────────
 log "Syncing config to /etc/cloudflared/config.yml ..."
 cp "$CONFIG_FILE" /etc/cloudflared/config.yml
 success "Config synced."
 
-# ─── DNS route ────────────────────────────────────────────────
-log "Adding DNS CNAME for $API_DOMAIN ..."
-sudo -u "$REAL_USER" cloudflared tunnel route dns oldarena "$API_DOMAIN" 2>/dev/null \
-  && success "DNS route added: $API_DOMAIN" \
-  || warn "$API_DOMAIN DNS already exists — skipping."
+# ─── Delete old DNS CNAME ─────────────────────────────────────
+log "Removing DNS CNAME for $OLD_DOMAIN ..."
+sudo -u "$REAL_USER" cloudflared tunnel route dns oldarena "$OLD_DOMAIN" --overwrite-dns 2>/dev/null \
+  && warn "Note: cloudflared does not support DNS deletion via CLI. Delete $OLD_DOMAIN manually from Cloudflare Dashboard → DNS." \
+  || warn "Could not auto-delete $OLD_DOMAIN DNS — delete manually from Cloudflare Dashboard → DNS."
+
+# ─── Add new DNS CNAME ────────────────────────────────────────
+log "Adding DNS CNAME for $NEW_DOMAIN ..."
+sudo -u "$REAL_USER" cloudflared tunnel route dns oldarena "$NEW_DOMAIN" 2>/dev/null \
+  && success "DNS route added: $NEW_DOMAIN" \
+  || warn "$NEW_DOMAIN DNS already exists — skipping."
 
 # ─── Restart cloudflared ─────────────────────────────────────
 log "Restarting cloudflared service..."
@@ -70,28 +90,27 @@ fi
 # ─── Health check ─────────────────────────────────────────────
 log "Verifying API health endpoint..."
 sleep 3
-HTTP_STATUS=$(curl -s -o /dev/null -w "%{http_code}" "https://$API_DOMAIN/health" 2>/dev/null || echo "000")
+HTTP_STATUS=$(curl -s -o /dev/null -w "%{http_code}" "https://$NEW_DOMAIN/health" 2>/dev/null || echo "000")
 
 if [ "$HTTP_STATUS" = "200" ]; then
-  success "Health check passed — API is responding."
+  success "Health check passed — API is live!"
 elif [ "$HTTP_STATUS" = "000" ]; then
-  warn "Could not reach https://$API_DOMAIN/health — DNS may still be propagating (wait ~1 min)."
+  warn "Could not reach https://$NEW_DOMAIN/health — DNS may still propagate (~1 min). Try again shortly."
 else
-  warn "Health check returned HTTP $HTTP_STATUS — verify manually."
+  warn "Health check returned HTTP $HTTP_STATUS — DNS may still be propagating."
 fi
 
 # ─── Final output ─────────────────────────────────────────────
 echo ""
-echo -e "${GREEN}✅ Done! Loan Tracker API is now live at: https://$API_DOMAIN${NC}"
+echo -e "${GREEN}✅ Done!${NC}"
+echo ""
+echo -e "  OLD (removed): ${RED}https://$OLD_DOMAIN${NC}"
+echo -e "  NEW (active):  ${GREEN}https://$NEW_DOMAIN${NC}"
+echo ""
+echo "⚠️  Also delete $OLD_DOMAIN from Cloudflare Dashboard → DNS manually."
 echo ""
 echo "Use this base URL in your React Native app:"
-echo -e "  ${YELLOW}https://$API_DOMAIN${NC}"
+echo -e "  ${YELLOW}https://$NEW_DOMAIN${NC}"
 echo ""
-echo "Test endpoints:"
-echo "  curl https://$API_DOMAIN/health"
-echo "  curl https://$API_DOMAIN/api/..."
-echo ""
-echo "Useful commands:"
-echo "  sudo systemctl status cloudflared"
-echo "  sudo cat $CF_DIR/config.yml"
-echo "  docker ps | grep loan-tracker"
+echo "Test:"
+echo "  curl https://$NEW_DOMAIN/health"
