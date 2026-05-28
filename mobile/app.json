@@ -1,0 +1,92 @@
+{
+  "expo": {
+    "name": "Loan Tracker",
+    "slug": "loan-tracker",
+    "description": "A polished loan tracking app for contacts, loans, repayments, balances, and reports.",
+    "version": "1.0.0",
+    "platforms": [
+      "ios",
+      "android"
+    ],
+    "orientation": "portrait",
+    "scheme": "loantracker",
+    "icon": "./assets/logo.png",
+    "userInterfaceStyle": "automatic",
+    "backgroundColor": "#fffaf4",
+    "primaryColor": "#f36f56",
+    "runtimeVersion": {
+      "policy": "appVersion"
+    },
+    "updates": {
+      "enabled": true,
+      "checkAutomatically": "ON_LOAD",
+      "fallbackToCacheTimeout": 0
+    },
+    "ios": {
+      "bundleIdentifier": "com.abuzar.loantracker",
+      "buildNumber": "1",
+      "supportsTablet": true,
+      "requireFullScreen": false,
+      "backgroundColor": "#fffaf4",
+      "userInterfaceStyle": "automatic",
+      "icon": "./assets/logo.png",
+      "config": {
+        "usesNonExemptEncryption": false
+      }
+    },
+    "android": {
+      "package": "com.abuzar.loantracker",
+      "versionCode": 1,
+      "backgroundColor": "#fffaf4",
+      "userInterfaceStyle": "automatic",
+      "softwareKeyboardLayoutMode": "resize",
+      "allowBackup": false,
+      "permissions": [],
+      "adaptiveIcon": {
+        "backgroundColor": "#fffaf4",
+        "foregroundImage": "./assets/logo.png"
+      },
+      "predictiveBackGestureEnabled": true
+    },
+    "web": {
+      "name": "Loan Tracker",
+      "shortName": "LoanTrack",
+      "favicon": "./assets/logo.png",
+      "themeColor": "#f36f56",
+      "backgroundColor": "#fffaf4",
+      "display": "standalone",
+      "bundler": "metro"
+    },
+    "plugins": [
+      [
+        "expo-font",
+        {
+          "fonts": [
+            "./node_modules/@expo-google-fonts/manrope/400Regular/Manrope_400Regular.ttf",
+            "./node_modules/@expo-google-fonts/manrope/500Medium/Manrope_500Medium.ttf",
+            "./node_modules/@expo-google-fonts/manrope/600SemiBold/Manrope_600SemiBold.ttf",
+            "./node_modules/@expo-google-fonts/manrope/700Bold/Manrope_700Bold.ttf",
+            "./node_modules/@expo-google-fonts/manrope/800ExtraBold/Manrope_800ExtraBold.ttf"
+          ]
+        }
+      ],
+      "@react-native-community/datetimepicker",
+      [
+        "expo-splash-screen",
+        {
+          "backgroundColor": "#fffaf4",
+          "image": "./assets/logo.png",
+          "imageWidth": 160,
+          "resizeMode": "contain",
+          "dark": {
+            "backgroundColor": "#1a161f",
+            "image": "./assets/logo.png"
+          }
+        }
+      ]
+    ],
+    "extra": {
+      "previewChannel": "preview"
+    }
+  }
+}
