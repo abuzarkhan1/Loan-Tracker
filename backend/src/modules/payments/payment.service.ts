@@ -4,6 +4,10 @@ import { loanService } from "../loans/loan.service";
 import { LoanModel } from "../loans/loan.model";
 import { PaymentMethod } from "../../constants/enums";
 import { PaymentModel } from "./payment.model";
+import { PaymentProofModel } from "./proofs/payment-proof.model";
+import { localStorageService } from "../../storage/local-storage.service";
+import { buildPaginationMeta } from "../../utils/pagination";
+import { ContactModel } from "../contacts/contact.model";
 
 const normalizePaymentPayload = <T extends Record<string, unknown>>(payload: T) => {
   const normalized = { ...payload };
@@ -14,6 +18,80 @@ const normalizePaymentPayload = <T extends Record<string, unknown>>(payload: T) 
 };
 
 export const paymentService = {
+  async getPayments(
+    userId: string,
+    query: {
+      search?: string;
+      loanId?: string;
+      contactId?: string;
+      method?: PaymentMethod;
+      minAmount?: number;
+      maxAmount?: number;
+      paymentDateFrom?: Date;
+      paymentDateTo?: Date;
+      hasProof?: boolean;
+      sortBy?: "paymentDate" | "amount" | "createdAt";
+      sortOrder?: "asc" | "desc";
+      page: number;
+      limit: number;
+    },
+  ) {
+    const filter: Record<string, unknown> = { userId };
+
+    if (query.loanId) {
+      await loanService.getLoanOrThrow(userId, query.loanId);
+      filter.loanId = query.loanId;
+    }
+    if (query.contactId) {
+      const contact = await ContactModel.findOne({ _id: query.contactId, userId }).select("_id");
+      if (!contact) throw new ApiError(404, "Contact not found");
+      filter.contactId = query.contactId;
+    }
+    if (query.method) filter.method = query.method;
+    if (query.minAmount !== undefined || query.maxAmount !== undefined) {
+      filter.amount = {
+        ...(query.minAmount !== undefined ? { $gte: query.minAmount } : {}),
+        ...(query.maxAmount !== undefined ? { $lte: query.maxAmount } : {}),
+      };
+    }
+    if (query.paymentDateFrom || query.paymentDateTo) {
+      filter.paymentDate = {
+        ...(query.paymentDateFrom ? { $gte: query.paymentDateFrom } : {}),
+        ...(query.paymentDateTo ? { $lte: query.paymentDateTo } : {}),
+      };
+    }
+    if (query.search) {
+      filter.note = new RegExp(query.search, "i");
+    }
+    if (query.hasProof !== undefined) {
+      const proofPaymentIds = await PaymentProofModel.distinct("paymentId", { userId });
+      filter._id = query.hasProof ? { $in: proofPaymentIds } : { $nin: proofPaymentIds };
+    }
+
+    const skip = (query.page - 1) * query.limit;
+    const sortField = query.sortBy || "paymentDate";
+    const sortDirection = query.sortOrder === "asc" ? 1 : -1;
+    const [payments, total, proofs] = await Promise.all([
+      PaymentModel.find(filter)
+        .populate("contactId", "name phone")
+        .populate("loanId", "amount remainingAmount status type")
+        .sort({ [sortField]: sortDirection, createdAt: -1 })
+        .skip(skip)
+        .limit(query.limit),
+      PaymentModel.countDocuments(filter),
+      PaymentProofModel.find({ userId }),
+    ]);
+    const proofByPaymentId = new Map(proofs.map((proof) => [proof.paymentId.toString(), proof]));
+
+    return {
+      payments: payments.map((payment) => ({
+        ...payment.toObject(),
+        proof: proofByPaymentId.get(payment._id.toString()) || null,
+      })),
+      pagination: buildPaginationMeta(query.page, query.limit, total),
+    };
+  },
+
   async addPayment(
     userId: string,
     payload: {
@@ -50,7 +128,16 @@ export const paymentService = {
 
   async getPaymentsByLoan(userId: string, loanId: string) {
     await loanService.getLoanOrThrow(userId, loanId);
-    return PaymentModel.find({ userId, loanId }).sort({ paymentDate: -1, createdAt: -1 });
+    const [payments, proofs] = await Promise.all([
+      PaymentModel.find({ userId, loanId }).sort({ paymentDate: -1, createdAt: -1 }),
+      PaymentProofModel.find({ userId, loanId }),
+    ]);
+    const proofByPaymentId = new Map(proofs.map((proof) => [proof.paymentId.toString(), proof]));
+
+    return payments.map((payment) => ({
+      ...payment.toObject(),
+      proof: proofByPaymentId.get(payment._id.toString()) || null,
+    }));
   },
 
   async updatePayment(
@@ -105,7 +192,12 @@ export const paymentService = {
     }
 
     const loanId = payment.loanId.toString();
+    const proof = await PaymentProofModel.findOne({ paymentId, userId });
     await payment.deleteOne();
+    if (proof) {
+      await localStorageService.remove(proof.storagePath);
+      await proof.deleteOne();
+    }
     const updatedLoan = await loanService.recalculateLoanTotals(loanId, userId);
 
     return {

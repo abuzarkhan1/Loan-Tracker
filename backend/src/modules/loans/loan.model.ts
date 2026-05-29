@@ -12,6 +12,16 @@ export interface ILoan extends Document {
   dueDate?: Date;
   status: LoanStatus;
   description?: string;
+  isInstallmentLoan: boolean;
+  installmentFrequency?: "MONTHLY" | "WEEKLY" | "CUSTOM";
+  installmentAmount?: number;
+  totalInstallments?: number;
+  installmentStartDate?: Date;
+  interestEnabled: boolean;
+  interestType?: "SIMPLE" | "MONTHLY";
+  interestRate?: number;
+  interestAmount: number;
+  totalPayableAmount: number;
   createdAt: Date;
   updatedAt: Date;
 }
@@ -70,6 +80,53 @@ const loanSchema = new Schema<ILoan>(
       type: String,
       trim: true,
       maxlength: 500,
+    },
+    isInstallmentLoan: {
+      type: Boolean,
+      default: false,
+      required: true,
+    },
+    installmentFrequency: {
+      type: String,
+      enum: ["MONTHLY", "WEEKLY", "CUSTOM"],
+    },
+    installmentAmount: {
+      type: Number,
+      min: 0,
+    },
+    totalInstallments: {
+      type: Number,
+      min: 1,
+    },
+    installmentStartDate: {
+      type: Date,
+    },
+    interestEnabled: {
+      type: Boolean,
+      default: false,
+      required: true,
+    },
+    interestType: {
+      type: String,
+      enum: ["SIMPLE", "MONTHLY"],
+    },
+    interestRate: {
+      type: Number,
+      min: 0,
+    },
+    interestAmount: {
+      type: Number,
+      min: 0,
+      default: 0,
+      required: true,
+    },
+    totalPayableAmount: {
+      type: Number,
+      min: 0,
+      default: function calculateTotalPayable(this: ILoan) {
+        return this.amount;
+      },
+      required: true,
     },
   },
   { timestamps: true },

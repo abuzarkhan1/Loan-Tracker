@@ -11,6 +11,18 @@ const envSchema = z.object({
   JWT_EXPIRES_IN: z.string().min(1).default("7d"),
   BCRYPT_SALT_ROUNDS: z.coerce.number().int().min(8).max(15).default(12),
   CORS_ORIGIN: z.string().default("*"),
+  REDIS_ENABLED: z.coerce.boolean().default(true),
+  REDIS_URL: z.string().optional(),
+  REDIS_HOST: z.string().default("127.0.0.1"),
+  REDIS_PORT: z.coerce.number().int().positive().default(6379),
+  REDIS_PASSWORD: z.string().optional(),
+  REDIS_CACHE_DB: z.coerce.number().int().min(0).default(0),
+  REDIS_QUEUE_DB: z.coerce.number().int().min(0).default(1),
+  QUEUE_WORKERS_ENABLED: z.coerce.boolean().default(false),
+  LOG_LEVEL: z.string().default("info"),
+  UPLOAD_DIR: z.string().default("uploads"),
+  PUBLIC_BASE_URL: z.string().optional(),
+  MAX_PROOF_FILE_SIZE_MB: z.coerce.number().positive().default(5),
 });
 
 const parsed = envSchema.safeParse(process.env);

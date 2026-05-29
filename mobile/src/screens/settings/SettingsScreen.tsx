@@ -1,6 +1,8 @@
+import { useNavigation } from "@react-navigation/native";
+import { NativeStackNavigationProp } from "@react-navigation/native-stack";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { useMutation, useQueryClient } from "@tanstack/react-query";
-import { Edit3, LogOut, Mail, Moon, Palette, Save, Sun, UserRound } from "lucide-react-native";
+import { Bell, BellRing, ChevronRight, Edit3, FileSpreadsheet, FileText, History, LogOut, Mail, Moon, Palette, Save, Shield, Sun, UserRound } from "lucide-react-native";
 import { useEffect, useState } from "react";
 import { useForm } from "react-hook-form";
 import { Text, TouchableOpacity, View } from "react-native";
@@ -8,6 +10,7 @@ import { z } from "zod";
 import { AppButton } from "../../components/AppButton";
 import { FormInput } from "../../components/FormInput";
 import { Screen } from "../../components/Screen";
+import { RootStackParamList } from "../../navigation/types";
 import { useAuth } from "../../providers/AuthProvider";
 import { useAppTheme } from "../../providers/ThemeProvider";
 import { getErrorMessage } from "../../utils/errors";
@@ -19,10 +22,39 @@ const profileSchema = z.object({
 });
 
 type ProfileValues = z.infer<typeof profileSchema>;
+type Navigation = NativeStackNavigationProp<RootStackParamList>;
+
+const SettingsRow = ({
+  title,
+  subtitle,
+  icon: Icon,
+  onPress,
+}: {
+  title: string;
+  subtitle: string;
+  icon: typeof Bell;
+  onPress: () => void;
+}) => {
+  const { theme } = useAppTheme();
+
+  return (
+    <TouchableOpacity activeOpacity={0.85} onPress={onPress} className="flex-row items-center gap-4 py-2">
+      <View className="h-11 w-11 items-center justify-center rounded-lg bg-background-soft">
+        <Icon color={theme.primary} size={21} />
+      </View>
+      <View className="flex-1">
+        <Text className="text-base font-bold text-dark">{title}</Text>
+        <Text className="mt-1 text-sm font-medium text-muted">{subtitle}</Text>
+      </View>
+      <ChevronRight color={theme.muted} size={20} />
+    </TouchableOpacity>
+  );
+};
 
 export const SettingsScreen = () => {
   const { user, logout, updateProfile } = useAuth();
   const { mode, theme, setMode } = useAppTheme();
+  const navigation = useNavigation<Navigation>();
   const queryClient = useQueryClient();
   const [isEditing, setIsEditing] = useState(false);
 
@@ -165,7 +197,6 @@ export const SettingsScreen = () => {
           </View>
           <View className="flex-1">
             <Text className="text-base font-bold text-dark">Appearance</Text>
-            <Text className="mt-1 text-sm font-medium text-muted">Design.html wali peach light aur warm dark theme.</Text>
           </View>
         </View>
 
@@ -220,6 +251,57 @@ export const SettingsScreen = () => {
             );
           })}
         </View>
+      </View>
+
+      <View className="mt-5 gap-3 rounded-lg border border-border bg-card p-5" style={theme.shadowSoft}>
+        <Text className="text-xs font-black uppercase text-muted">Security</Text>
+        <SettingsRow
+          title="Security & App Lock"
+          subtitle="PIN aur biometric lock setup."
+          icon={Shield}
+          onPress={() => navigation.navigate("SecuritySettings")}
+        />
+      </View>
+
+      <View className="mt-5 gap-3 rounded-lg border border-border bg-card p-5" style={theme.shadowSoft}>
+        <Text className="text-xs font-black uppercase text-muted">Reminders</Text>
+        <SettingsRow
+          title="Reminder Settings"
+          subtitle="Due date, overdue, daily aur weekly summary."
+          icon={BellRing}
+          onPress={() => navigation.navigate("ReminderSettings")}
+        />
+        <View className="h-px bg-border" />
+        <SettingsRow
+          title="Notification History"
+          subtitle="Sent, failed, pending reminder logs."
+          icon={Bell}
+          onPress={() => navigation.navigate("ReminderLogs")}
+        />
+      </View>
+
+      <View className="mt-5 gap-3 rounded-lg border border-border bg-card p-5" style={theme.shadowSoft}>
+        <Text className="text-xs font-black uppercase text-muted">Reports & Export</Text>
+        <SettingsRow
+          title="Generate PDF"
+          subtitle="Contact, monthly, complete history."
+          icon={FileText}
+          onPress={() => navigation.navigate("GeneratePdf")}
+        />
+        <View className="h-px bg-border" />
+        <SettingsRow
+          title="Export Data"
+          subtitle="Loans aur payments Excel export."
+          icon={FileSpreadsheet}
+          onPress={() => navigation.navigate("ExportExcel")}
+        />
+        <View className="h-px bg-border" />
+        <SettingsRow
+          title="Report History"
+          subtitle="PDF/Excel status aur downloads."
+          icon={History}
+          onPress={() => navigation.navigate("ReportHistory")}
+        />
       </View>
 
       <View className="mt-6">

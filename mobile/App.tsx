@@ -9,11 +9,13 @@ import {
 } from "@expo-google-fonts/manrope";
 import { StatusBar } from "expo-status-bar";
 import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
-import { useEffect } from "react";
+import { ReactNode, useEffect } from "react";
 import { Text, TextInput, View } from "react-native";
 import { SafeAreaProvider } from "react-native-safe-area-context";
 import { AuthProvider } from "./src/providers/AuthProvider";
+import { SecurityProvider, useSecurity } from "./src/providers/SecurityProvider";
 import { ThemeProvider, useAppTheme } from "./src/providers/ThemeProvider";
+import { AlertProvider } from "./src/providers/AlertProvider";
 import { RootNavigator } from "./src/navigation/RootNavigator";
 import { fontFamily } from "./src/utils/theme";
 
@@ -46,6 +48,15 @@ const ThemedStatusBar = () => {
   return <StatusBar style={mode === "dark" ? "light" : "dark"} />;
 };
 
+const SecurityActivityGate = ({ children }: { children: ReactNode }) => {
+  const { recordActivity } = useSecurity();
+  return (
+    <View style={{ flex: 1 }} onTouchStart={recordActivity}>
+      {children}
+    </View>
+  );
+};
+
 export default function App() {
   const [fontsLoaded] = useFonts({
     Manrope_400Regular,
@@ -69,10 +80,16 @@ export default function App() {
     <SafeAreaProvider>
       <QueryClientProvider client={queryClient}>
         <ThemeProvider>
-          <AuthProvider>
-            <ThemedStatusBar />
-            <RootNavigator />
-          </AuthProvider>
+          <AlertProvider>
+            <AuthProvider>
+              <SecurityProvider>
+                <SecurityActivityGate>
+                  <ThemedStatusBar />
+                  <RootNavigator />
+                </SecurityActivityGate>
+              </SecurityProvider>
+            </AuthProvider>
+          </AlertProvider>
         </ThemeProvider>
       </QueryClientProvider>
     </SafeAreaProvider>

@@ -16,6 +16,8 @@ export const createContactSchema = z.object({
 export const getContactsSchema = z.object({
   query: z.object({
     search: z.string().trim().optional(),
+    sortBy: z.enum(["name", "createdAt", "updatedAt"]).default("name"),
+    sortOrder: z.enum(["asc", "desc"]).default("asc"),
     page: z.coerce.number().int().positive().default(1),
     limit: z.coerce.number().int().positive().max(100).default(10),
   }),

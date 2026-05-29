@@ -1,13 +1,14 @@
 import { ErrorRequestHandler, NextFunction, Request, Response } from "express";
 import mongoose from "mongoose";
 import { env } from "../config/env";
+import { logger } from "../config/logger";
 import { ApiError } from "../utils/apiError";
 
 export const notFoundHandler = (req: Request, _res: Response, next: NextFunction) => {
   next(new ApiError(404, `Route not found: ${req.originalUrl}`));
 };
 
-export const errorHandler: ErrorRequestHandler = (error, _req, res, _next) => {
+export const errorHandler: ErrorRequestHandler = (error, req, res, _next) => {
   let statusCode = error.statusCode || 500;
   let message = error.message || "Internal server error";
 
@@ -22,9 +23,15 @@ export const errorHandler: ErrorRequestHandler = (error, _req, res, _next) => {
     message = `${field} already exists`;
   }
 
-  if (env.NODE_ENV === "development") {
-    console.error(error);
-  }
+  logger.error("request_error", {
+    requestId: req.requestId,
+    userId: req.user?.id,
+    method: req.method,
+    path: req.originalUrl,
+    statusCode,
+    message,
+    error: env.NODE_ENV === "development" ? error : { name: error?.name },
+  });
 
   res.status(statusCode).json({
     success: false,

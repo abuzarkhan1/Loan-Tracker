@@ -11,6 +11,7 @@ import {
   createContact,
   deleteContact,
   getContactDetail,
+  getContactLedger,
   getContacts,
   updateContact,
 } from "./contact.controller";
@@ -20,6 +21,7 @@ const router = Router();
 router.use(requireAuth);
 router.post("/", validateRequest(createContactSchema), createContact);
 router.get("/", validateRequest(getContactsSchema), getContacts);
+router.get("/:contactId/ledger", validateRequest(contactIdParamSchema), getContactLedger);
 router.get("/:contactId", validateRequest(contactIdParamSchema), getContactDetail);
 router.patch("/:contactId", validateRequest(updateContactSchema), updateContact);
 router.delete("/:contactId", validateRequest(contactIdParamSchema), deleteContact);

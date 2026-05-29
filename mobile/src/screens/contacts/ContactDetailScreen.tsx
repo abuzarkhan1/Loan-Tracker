@@ -1,7 +1,6 @@
 import { NativeStackScreenProps } from "@react-navigation/native-stack";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
-import { Alert } from "react-native";
-import { Edit3, Landmark, Plus, Trash2 } from "lucide-react-native";
+import { BookOpen, Edit3, Landmark, Plus, Share2, Trash2 } from "lucide-react-native";
 import { Text, View } from "react-native";
 import { api } from "../../api/client";
 import { AppButton } from "../../components/AppButton";
@@ -11,8 +10,10 @@ import { EmptyState, ErrorState, LoadingState } from "../../components/StateView
 import { SummaryCard } from "../../components/SummaryCard";
 import { RootStackParamList } from "../../navigation/types";
 import { useAppTheme } from "../../providers/ThemeProvider";
+import { showAlert } from "../../providers/AlertProvider";
 import { formatCurrency } from "../../utils/format";
 import { getErrorMessage } from "../../utils/errors";
+import { shareToWhatsApp } from "../../utils/share";
 
 type Props = NativeStackScreenProps<RootStackParamList, "ContactDetail">;
 
@@ -34,10 +35,14 @@ export const ContactDetailScreen = ({ navigation, route }: Props) => {
   });
 
   const confirmDelete = () => {
-    Alert.alert("Delete contact", "Active loans hon to contact delete nahi hoga.", [
-      { text: "Cancel", style: "cancel" },
-      { text: "Delete", style: "destructive", onPress: () => deleteMutation.mutate() },
-    ]);
+    showAlert({
+      title: "Delete contact",
+      message: "Active loans hon to contact delete nahi hoga.",
+      buttons: [
+        { text: "Cancel", style: "cancel" },
+        { text: "Delete", style: "destructive", onPress: () => deleteMutation.mutate() },
+      ],
+    });
   };
 
   if (contactQuery.isLoading) return <Screen><LoadingState label="Loading contact..." /></Screen>;
@@ -46,6 +51,18 @@ export const ContactDetailScreen = ({ navigation, route }: Props) => {
   }
 
   const { contact, summary, recentLoans } = contactQuery.data;
+  const shareContactSummary = () => {
+    const message = [
+      `Contact Ledger - ${contact.name}`,
+      `Total Diya: ${formatCurrency(summary.totalGiven)}`,
+      `Total Liya: ${formatCurrency(summary.totalTaken)}`,
+      `Total Wapis Mila: ${formatCurrency(summary.totalReceivedBack)}`,
+      `Total Wapis Diya: ${formatCurrency(summary.totalPaidBack)}`,
+      `Net Balance: ${formatCurrency(summary.overallBalance)}`,
+    ].join("\n");
+
+    void shareToWhatsApp(message);
+  };
 
   return (
     <Screen className="pt-5">
@@ -63,6 +80,12 @@ export const ContactDetailScreen = ({ navigation, route }: Props) => {
           <View className="flex-1">
             <AppButton title="Delete" icon={Trash2} variant="danger" onPress={confirmDelete} loading={deleteMutation.isPending} />
           </View>
+        </View>
+        <View className="mt-3">
+          <AppButton title="Share Ledger" icon={Share2} variant="secondary" onPress={shareContactSummary} />
+        </View>
+        <View className="mt-3">
+          <AppButton title="View Full Ledger" icon={BookOpen} variant="secondary" onPress={() => navigation.navigate("ContactLedger", { contactId })} />
         </View>
       </View>
 

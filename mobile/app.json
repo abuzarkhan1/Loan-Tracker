@@ -84,7 +84,10 @@
             "image": "./assets/logo.png"
           }
         }
-      ]
+      ],
+      "expo-secure-store",
+      "expo-sharing",
+      "expo-notifications"
     ],
     "extra": {
       "previewChannel": "preview",

@@ -1,9 +1,9 @@
-import { useNavigation } from "@react-navigation/native";
+import { RouteProp, useNavigation, useRoute } from "@react-navigation/native";
 import { NativeStackNavigationProp } from "@react-navigation/native-stack";
 import { useQuery } from "@tanstack/react-query";
-import { Plus, Search } from "lucide-react-native";
-import { useState } from "react";
-import { Text, TextInput, View } from "react-native";
+import { CalendarClock, Plus, Search, SlidersHorizontal } from "lucide-react-native";
+import { useEffect, useState } from "react";
+import { Text, TextInput, TouchableOpacity, View } from "react-native";
 import { api } from "../../api/client";
 import { LoanStatus, LoanType } from "../../api/types";
 import { AppButton } from "../../components/AppButton";
@@ -11,27 +11,47 @@ import { FormSelect } from "../../components/FormSelect";
 import { LoanCard } from "../../components/LoanCard";
 import { Screen } from "../../components/Screen";
 import { EmptyState, ErrorState, LoadingState } from "../../components/StateViews";
-import { RootStackParamList } from "../../navigation/types";
+import { LoanFilterParams, MainTabParamList, RootStackParamList } from "../../navigation/types";
 import { useAppTheme } from "../../providers/ThemeProvider";
 
 type Navigation = NativeStackNavigationProp<RootStackParamList>;
+type LoansRoute = RouteProp<MainTabParamList, "Loans">;
 type TypeFilter = "ALL" | LoanType;
 type StatusFilter = "ALL" | LoanStatus;
 
 export const LoansScreen = () => {
   const navigation = useNavigation<Navigation>();
+  const route = useRoute<LoansRoute>();
   const { theme } = useAppTheme();
   const [search, setSearch] = useState("");
   const [type, setType] = useState<TypeFilter>("ALL");
   const [status, setStatus] = useState<StatusFilter>("ALL");
+  const [advancedFilters, setAdvancedFilters] = useState<LoanFilterParams>({});
+
+  useEffect(() => {
+    if (route.params?.filters) {
+      setAdvancedFilters(route.params.filters);
+    }
+  }, [route.params?.filters]);
 
   const loansQuery = useQuery({
-    queryKey: ["loans", search, type, status],
+    queryKey: ["loans", search, type, status, advancedFilters],
     queryFn: () =>
       api.getLoans({
         search,
         type: type === "ALL" ? undefined : type,
         status: status === "ALL" ? undefined : status,
+        contactId: advancedFilters.contactId,
+        minAmount: advancedFilters.minAmount ? Number(advancedFilters.minAmount) : undefined,
+        maxAmount: advancedFilters.maxAmount ? Number(advancedFilters.maxAmount) : undefined,
+        issueDateFrom: advancedFilters.issueDateFrom,
+        issueDateTo: advancedFilters.issueDateTo,
+        dueDateFrom: advancedFilters.dueDateFrom,
+        dueDateTo: advancedFilters.dueDateTo,
+        paymentMethod: advancedFilters.paymentMethod,
+        hasProof: advancedFilters.hasProof,
+        sortBy: advancedFilters.sortBy,
+        sortOrder: advancedFilters.sortOrder,
         limit: 50,
       }),
   });
@@ -60,9 +80,22 @@ export const LoansScreen = () => {
           returnKeyType="search"
           className="h-12 flex-1 text-base text-dark"
         />
+        <TouchableOpacity
+          activeOpacity={0.85}
+          onPress={() => navigation.navigate("AdvancedLoanFilters", { filters: advancedFilters })}
+          className="h-9 w-9 items-center justify-center rounded-lg bg-peach"
+        >
+          <SlidersHorizontal color={theme.primaryDark} size={18} />
+        </TouchableOpacity>
       </View>
 
       <View className="mt-4 gap-4">
+        <AppButton
+          title="Upcoming Installments"
+          icon={CalendarClock}
+          variant="secondary"
+          onPress={() => navigation.navigate("UpcomingInstallments")}
+        />
         <FormSelect
           label="Loan Type"
           value={type}

@@ -1,6 +1,7 @@
 import { Types } from "mongoose";
 import { LoanStatus, LoanType } from "../../constants/enums";
 import { LoanModel } from "../loans/loan.model";
+import { PaymentModel } from "../payments/payment.model";
 import { ApiError } from "../../utils/apiError";
 import { buildPaginationMeta } from "../../utils/pagination";
 import { ContactModel, IContact } from "./contact.model";
@@ -28,7 +29,7 @@ export const contactService = {
 
   async getContacts(
     userId: string,
-    query: { search?: string; page: number; limit: number },
+    query: { search?: string; sortBy?: "name" | "createdAt" | "updatedAt"; sortOrder?: "asc" | "desc"; page: number; limit: number },
   ) {
     const filter: Record<string, unknown> = { userId };
 
@@ -38,8 +39,10 @@ export const contactService = {
     }
 
     const skip = (query.page - 1) * query.limit;
+    const sortField = query.sortBy || "name";
+    const sortDirection = query.sortOrder === "desc" ? -1 : 1;
     const [contacts, total] = await Promise.all([
-      ContactModel.find(filter).sort({ name: 1 }).skip(skip).limit(query.limit),
+      ContactModel.find(filter).sort({ [sortField]: sortDirection }).skip(skip).limit(query.limit),
       ContactModel.countDocuments(filter),
     ]);
 
@@ -125,6 +128,47 @@ export const contactService = {
         overallBalance: summary.netReceivable - summary.netPayable,
       },
       recentLoans,
+    };
+  },
+
+  async getContactLedger(userId: string, contactId: string) {
+    const detail = await this.getContactDetail(userId, contactId);
+    const [loans, payments] = await Promise.all([
+      LoanModel.find({ userId, contactId }).sort({ issueDate: -1, createdAt: -1 }),
+      PaymentModel.find({ userId, contactId }).sort({ paymentDate: -1, createdAt: -1 }),
+    ]);
+
+    const loanTimeline = loans.map((loan) => ({
+      id: loan._id.toString(),
+      kind: "LOAN",
+      date: loan.issueDate,
+      amount: loan.amount,
+      type: loan.type,
+      status: loan.status,
+      description: loan.description,
+      remainingAmount: loan.remainingAmount,
+      createdAt: loan.createdAt,
+    }));
+
+    const paymentTimeline = payments.map((payment) => ({
+      id: payment._id.toString(),
+      kind: "PAYMENT",
+      date: payment.paymentDate,
+      amount: payment.amount,
+      type: payment.type,
+      method: payment.method,
+      note: payment.note,
+      createdAt: payment.createdAt,
+    }));
+
+    return {
+      contact: detail.contact,
+      summary: detail.summary,
+      loans,
+      payments,
+      timeline: [...loanTimeline, ...paymentTimeline].sort(
+        (a, b) => new Date(b.date).getTime() - new Date(a.date).getTime(),
+      ),
     };
   },
 

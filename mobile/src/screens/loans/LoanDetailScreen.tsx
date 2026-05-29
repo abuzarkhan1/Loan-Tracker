@@ -1,8 +1,8 @@
 import { NativeStackScreenProps } from "@react-navigation/native-stack";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
-import { Alert, Text, TouchableOpacity, View } from "react-native";
-import { Edit3, Plus, Trash2 } from "lucide-react-native";
-import { api } from "../../api/client";
+import { Image, Text, TouchableOpacity, View } from "react-native";
+import { BellRing, CalendarClock, Edit3, Image as ImageIcon, Percent, Plus, Share2, Trash2 } from "lucide-react-native";
+import { api, getAssetUrl } from "../../api/client";
 import { AppButton } from "../../components/AppButton";
 import { ProgressBar } from "../../components/ProgressBar";
 import { Screen } from "../../components/Screen";
@@ -10,8 +10,10 @@ import { EmptyState, ErrorState, LoadingState } from "../../components/StateView
 import { StatusBadge } from "../../components/StatusBadge";
 import { RootStackParamList } from "../../navigation/types";
 import { useAppTheme } from "../../providers/ThemeProvider";
+import { showAlert } from "../../providers/AlertProvider";
 import { getErrorMessage } from "../../utils/errors";
 import { formatCurrency, formatDate, formatTime, getProgress } from "../../utils/format";
+import { shareToWhatsApp } from "../../utils/share";
 import { fontFamily } from "../../utils/theme";
 
 type Props = NativeStackScreenProps<RootStackParamList, "LoanDetail">;
@@ -31,6 +33,11 @@ export const LoanDetailScreen = ({ navigation, route }: Props) => {
   const loanQuery = useQuery({
     queryKey: ["loan", loanId],
     queryFn: () => api.getLoan(loanId),
+  });
+  const installmentsQuery = useQuery({
+    queryKey: ["installments", loanId],
+    queryFn: () => api.getLoanInstallments(loanId),
+    enabled: Boolean(loanQuery.data?.loan.isInstallmentLoan),
   });
 
   const deleteLoanMutation = useMutation({
@@ -52,17 +59,25 @@ export const LoanDetailScreen = ({ navigation, route }: Props) => {
   });
 
   const confirmLoanDelete = () => {
-    Alert.alert("Delete loan", "Is loan ki payments bhi delete ho jayengi.", [
-      { text: "Cancel", style: "cancel" },
-      { text: "Delete", style: "destructive", onPress: () => deleteLoanMutation.mutate() },
-    ]);
+    showAlert({
+      title: "Delete loan",
+      message: "Is loan ki payments bhi delete ho jayengi.",
+      buttons: [
+        { text: "Cancel", style: "cancel" },
+        { text: "Delete", style: "destructive", onPress: () => deleteLoanMutation.mutate() },
+      ],
+    });
   };
 
   const confirmPaymentDelete = (paymentId: string) => {
-    Alert.alert("Delete payment", "Loan balance dobara calculate hoga.", [
-      { text: "Cancel", style: "cancel" },
-      { text: "Delete", style: "destructive", onPress: () => deletePaymentMutation.mutate(paymentId) },
-    ]);
+    showAlert({
+      title: "Delete payment",
+      message: "Loan balance dobara calculate hoga.",
+      buttons: [
+        { text: "Cancel", style: "cancel" },
+        { text: "Delete", style: "destructive", onPress: () => deletePaymentMutation.mutate(paymentId) },
+      ],
+    });
   };
 
   if (loanQuery.isLoading) return <Screen><LoadingState label="Loading loan..." /></Screen>;
@@ -74,6 +89,18 @@ export const LoanDetailScreen = ({ navigation, route }: Props) => {
   const progress = getProgress(loan.paidAmount, loan.amount);
   const paymentActionLabel = loan.type === "TAKEN" ? "Maine Diya" : "Wapis Mila";
   const paymentVerb = loan.type === "TAKEN" ? "Maine diya" : "Mujhe mila";
+  const shareLoanSummary = () => {
+    const message = [
+      `Loan Summary - ${getContactName(loan.contactId)}`,
+      `Total Amount: ${formatCurrency(loan.amount)}`,
+      `Paid/Received: ${formatCurrency(loan.paidAmount)}`,
+      `Remaining: ${formatCurrency(loan.remainingAmount)}`,
+      `Status: ${loan.status.replace("_", " ")}`,
+      `Due Date: ${formatDate(loan.dueDate)}`,
+    ].join("\n");
+
+    void shareToWhatsApp(message);
+  };
   let cumulativePaid = 0;
   const runningBalances = [...payments]
     .sort((a, b) => new Date(a.paymentDate).getTime() - new Date(b.paymentDate).getTime())
@@ -121,6 +148,22 @@ export const LoanDetailScreen = ({ navigation, route }: Props) => {
           <Text className="text-sm font-semibold text-muted">Due {formatDate(loan.dueDate)}</Text>
         </View>
 
+        <TouchableOpacity
+          activeOpacity={0.85}
+          onPress={() => navigation.navigate("ReminderSettings")}
+          className="mt-5 flex-row items-center gap-3 rounded-lg border border-border bg-background-soft p-4"
+        >
+          <View className="h-10 w-10 items-center justify-center rounded-lg bg-peach">
+            <BellRing color={theme.primaryDark} size={20} />
+          </View>
+          <View className="flex-1">
+            <Text className="text-sm font-bold text-dark">Reminder Status</Text>
+            <Text className="mt-1 text-xs font-semibold text-muted">
+              {loan.dueDate ? `Due reminder active for ${formatDate(loan.dueDate)}` : "No due date set for this loan."}
+            </Text>
+          </View>
+        </TouchableOpacity>
+
         {(deleteLoanMutation.isError || deletePaymentMutation.isError) ? (
           <Text className="mt-3 text-sm font-semibold text-danger">
             {getErrorMessage(deleteLoanMutation.error || deletePaymentMutation.error)}
@@ -139,7 +182,58 @@ export const LoanDetailScreen = ({ navigation, route }: Props) => {
             <AppButton title="Delete" icon={Trash2} variant="danger" onPress={confirmLoanDelete} loading={deleteLoanMutation.isPending} />
           </View>
         </View>
+        <View className="mt-3">
+          <AppButton title="Share Summary" icon={Share2} variant="secondary" onPress={shareLoanSummary} />
+        </View>
       </View>
+
+      {loan.isInstallmentLoan ? (
+        <View className="mt-5 rounded-lg border border-border bg-card p-5" style={theme.shadowSoft}>
+          <View className="flex-row items-center gap-4">
+            <View className="h-12 w-12 items-center justify-center rounded-lg bg-peach">
+              <CalendarClock color={theme.primaryDark} size={24} />
+            </View>
+            <View className="flex-1">
+              <Text className="text-base font-bold text-dark">Installment Progress</Text>
+              <Text className="mt-1 text-sm font-medium text-muted">
+                {(installmentsQuery.data || []).filter((item) => item.status === "PAID").length} paid · {(installmentsQuery.data || []).filter((item) => item.status !== "PAID").length} remaining
+              </Text>
+            </View>
+          </View>
+          <View className="mt-4">
+            <AppButton
+              title="View Schedule"
+              icon={CalendarClock}
+              variant="secondary"
+              onPress={() => navigation.navigate("InstallmentSchedule", { loanId })}
+            />
+          </View>
+        </View>
+      ) : null}
+
+      {loan.interestEnabled ? (
+        <View className="mt-5 rounded-lg border border-border bg-card p-5" style={theme.shadowSoft}>
+          <View className="flex-row items-center gap-4">
+            <View className="h-12 w-12 items-center justify-center rounded-lg bg-background-soft">
+              <Percent color={theme.primary} size={24} />
+            </View>
+            <View className="flex-1">
+              <Text className="text-base font-bold text-dark">Interest Enabled</Text>
+              <Text className="mt-1 text-sm font-medium text-muted">
+                Interest {formatCurrency(loan.interestAmount)} · Total {formatCurrency(loan.totalPayableAmount)}
+              </Text>
+            </View>
+          </View>
+          <View className="mt-4">
+            <AppButton
+              title="View Breakdown"
+              icon={Percent}
+              variant="secondary"
+              onPress={() => navigation.navigate("InterestBreakdown", { loanId })}
+            />
+          </View>
+        </View>
+      ) : null}
 
       <View className="mt-6 flex-row items-center justify-between">
         <Text className="text-lg font-black text-dark">Payment History</Text>
@@ -173,6 +267,24 @@ export const LoanDetailScreen = ({ navigation, route }: Props) => {
                     </Text>
                   </View>
                   {payment.note ? <Text className="mt-2 text-sm text-dark">{payment.note}</Text> : null}
+                  {payment.proof ? (
+                    <View className="mt-3 flex-row items-center gap-3 rounded-lg border border-border bg-background-soft p-2">
+                      {getAssetUrl(payment.proof.fileUrl) ? (
+                        <Image
+                          source={{ uri: getAssetUrl(payment.proof.fileUrl) }}
+                          style={{ height: 42, width: 42, borderRadius: 12, backgroundColor: theme.card }}
+                        />
+                      ) : (
+                        <View className="h-10 w-10 items-center justify-center rounded-lg bg-peach">
+                          <ImageIcon color={theme.primaryDark} size={18} />
+                        </View>
+                      )}
+                      <View className="flex-1">
+                        <Text className="text-xs font-black uppercase text-muted">Proof attached</Text>
+                        <Text className="mt-1 text-xs font-semibold text-dark">{payment.proof.fileName}</Text>
+                      </View>
+                    </View>
+                  ) : null}
                 </View>
                 <View className="flex-row gap-2">
                   <TouchableOpacity
@@ -180,6 +292,18 @@ export const LoanDetailScreen = ({ navigation, route }: Props) => {
                     onPress={() => navigation.navigate("PaymentForm", { loanId, paymentId: payment._id })}
                   >
                     <Edit3 color={theme.primary} size={17} />
+                  </TouchableOpacity>
+                  <TouchableOpacity
+                    className="h-9 w-9 items-center justify-center rounded-lg bg-background-soft"
+                    onPress={() => void shareToWhatsApp([
+                      `Payment Confirmation - ${getContactName(loan.contactId)}`,
+                      `Amount: ${formatCurrency(payment.amount)}`,
+                      `Method: ${payment.method}`,
+                      `Date: ${formatDate(payment.paymentDate)}`,
+                      `Remaining: ${formatCurrency(runningBalances[payment._id] ?? loan.remainingAmount)}`,
+                    ].join("\n"))}
+                  >
+                    <Share2 color={theme.primary} size={17} />
                   </TouchableOpacity>
                   <TouchableOpacity
                     className="h-9 w-9 items-center justify-center rounded-lg bg-peach"
