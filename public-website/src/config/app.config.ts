@@ -1,7 +1,7 @@
 export const APP_CONFIG = {
   appName: "Loan Tracker",
   apiBaseUrl: import.meta.env.VITE_API_URL || "http://localhost:5050/api",
-  apkDownloadUrl: "https://github.com/abuzarkhan1/Loan-Tracker/releases/download/V1/application-9fb0d8b5-2a99-4bc8-bbe1-28ec1f2f36c9.apk",
+  apkDownloadUrl: "https://github.com/abuzarkhan1/Loan-Tracker/releases/download/V1/tracker.apk",
   apkVersion: "V1",
   apkSize: "97.8 MB",
   lastUpdated: "May 28, 2026",
