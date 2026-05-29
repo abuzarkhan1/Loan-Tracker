@@ -10,9 +10,24 @@ const labels: Record<string, string> = {
   OVERDUE: "Overdue",
   GIVEN: "Mujhe Lene Hain",
   TAKEN: "Mujhe Dene Hain",
+  PENDING: "Pending",
+  PROCESSING: "Processing",
+  GENERATED: "Generated",
+  FAILED: "Failed",
+  DEFAULT: "Default",
+  QUEUED: "Queued",
+  SENT: "Sent",
+  CREATED: "Created",
+  SHARED: "Shared",
+  EMAIL_SENT: "Email Sent",
+  CANCELLED: "Cancelled",
+  PAID: "Paid",
+  KEPT: "Kept",
+  BROKEN: "Broken",
+  SETTLED: "Settled",
 };
 
-export const StatusBadge = ({ value }: { value: LoanStatus | LoanType }) => {
+export const StatusBadge = ({ value }: { value: LoanStatus | LoanType | string }) => {
   const { theme } = useAppTheme();
   const isType = value === "GIVEN" || value === "TAKEN";
   const backgroundColor =
@@ -31,7 +46,7 @@ export const StatusBadge = ({ value }: { value: LoanStatus | LoanType }) => {
         borderColor: theme.border,
       }}
     >
-      <Text style={{ color, fontFamily: fontFamily.extraBold, fontSize: 11 }}>{labels[value]}</Text>
+      <Text style={{ color, fontFamily: fontFamily.extraBold, fontSize: 11 }}>{labels[value] || value}</Text>
     </View>
   );
 };

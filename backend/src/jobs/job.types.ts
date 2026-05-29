@@ -1,6 +1,8 @@
 import type { AuditAction, AuditEntityType } from "../modules/audit/audit-log.model";
 import type { ReminderType } from "../modules/reminders/reminder.enums";
 import type { ReportType } from "../modules/reports/report.model";
+import type { ReceiptType } from "../modules/receipts/receipt.model";
+import type { EmailType } from "../modules/email/email.model";
 import { jobNames } from "./job.constants";
 
 export type NotificationJobPayload = {
@@ -18,6 +20,24 @@ export type ReportJobPayload = {
   reportId?: string;
   type: ReportType;
   metadata?: Record<string, unknown>;
+};
+
+export type ReceiptJobPayload = {
+  userId: string;
+  receiptId: string;
+  type: ReceiptType;
+  metadata?: Record<string, unknown>;
+};
+
+export type EmailJobPayload = {
+  userId: string;
+  emailLogId: string;
+  type: EmailType;
+};
+
+export type SalaryJobPayload = {
+  userId?: string;
+  date?: string;
 };
 
 export type CleanupJobPayload = {
@@ -44,5 +64,8 @@ export type QueueJobPayload =
   | { name: typeof jobNames.weeklySummary; data: NotificationJobPayload }
   | { name: typeof jobNames.pdfReport; data: ReportJobPayload }
   | { name: typeof jobNames.excelExport; data: ReportJobPayload }
+  | { name: typeof jobNames.receiptPdf; data: ReceiptJobPayload }
+  | { name: typeof jobNames.sendEmail; data: EmailJobPayload }
+  | { name: typeof jobNames.createExpectedSalary; data: SalaryJobPayload }
   | { name: typeof jobNames.cleanupTempFiles; data: CleanupJobPayload }
   | { name: typeof jobNames.writeAuditLog; data: AuditJobPayload };

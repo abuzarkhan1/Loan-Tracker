@@ -10,6 +10,21 @@ export const loanIdParamSchema = z.object({
   }),
 });
 
+export const pinnedLoansSchema = z.object({
+  query: z.object({
+    limit: z.coerce.number().int().positive().max(50).default(10),
+  }),
+});
+
+export const pinLoanSchema = z.object({
+  params: z.object({
+    loanId: objectIdSchema,
+  }),
+  body: z.object({
+    isPinned: z.boolean(),
+  }),
+});
+
 export const createLoanSchema = z.object({
   body: z.object({
     contactId: objectIdSchema,

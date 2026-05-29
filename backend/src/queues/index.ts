@@ -5,12 +5,16 @@ import { notificationQueue, notificationQueueEvents } from "./notification.queue
 import { reportQueue, reportQueueEvents } from "./report.queue";
 import { cleanupQueue, cleanupQueueEvents } from "./cleanup.queue";
 import { auditQueue, auditQueueEvents } from "./audit.queue";
+import { emailQueue, emailQueueEvents } from "./email.queue";
+import { salaryQueue, salaryQueueEvents, scheduleSalaryQueueJobs } from "./salary.queue";
 
 export const queues = {
   notificationQueue,
   reportQueue,
   cleanupQueue,
   auditQueue,
+  emailQueue,
+  salaryQueue,
 };
 
 const queueEvents: QueueEvents[] = [
@@ -18,6 +22,8 @@ const queueEvents: QueueEvents[] = [
   reportQueueEvents,
   cleanupQueueEvents,
   auditQueueEvents,
+  emailQueueEvents,
+  salaryQueueEvents,
 ];
 
 export const getQueueHealth = async () => {
@@ -48,4 +54,13 @@ export const closeQueues = async () => {
     ...queueList.map((queue) => queue.close()),
     ...queueEvents.map((events) => events.close()),
   ]);
+};
+
+export const scheduleQueueJobs = async () => {
+  if (!isRedisReady(queueRedisConnection)) {
+    logger.info("queue_job_scheduling_skipped", { reason: "redis_unavailable" });
+    return;
+  }
+
+  await scheduleSalaryQueueJobs();
 };

@@ -5,6 +5,8 @@ import { createNotificationWorker } from "./notification.worker";
 import { createReportWorker } from "./report.worker";
 import { createCleanupWorker } from "./cleanup.worker";
 import { createAuditWorker } from "./audit.worker";
+import { createEmailWorker } from "./email.worker";
+import { createSalaryWorker } from "./salary.worker";
 
 let workers: Worker[] = [];
 
@@ -45,6 +47,8 @@ export const startWorkers = () => {
     createReportWorker(),
     createCleanupWorker(),
     createAuditWorker(),
+    createEmailWorker(),
+    createSalaryWorker(),
   ];
   workers.forEach(bindWorkerLogging);
   logger.info("queue_workers_started", { count: workers.length });

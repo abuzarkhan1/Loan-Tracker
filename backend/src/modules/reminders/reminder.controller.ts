@@ -50,3 +50,46 @@ export const sendTestReminder = asyncHandler(async (req, res) => {
   const data = await reminderService.sendTestNotification(req.user!.id);
   return sendResponse(res, 201, "Test notification queued successfully", data);
 });
+
+export const getLoanReminder = asyncHandler(async (req, res) => {
+  const data = await reminderService.getLoanReminder(req.user!.id, String(req.params.loanId));
+  return sendResponse(res, 200, "Loan reminder fetched successfully", data);
+});
+
+export const updateLoanReminder = asyncHandler(async (req, res) => {
+  const userId = req.user!.id;
+  const data = await reminderService.updateLoanReminder(userId, String(req.params.loanId), req.body);
+  await auditLogService.record({
+    userId,
+    action: "SETTINGS_CHANGED",
+    entityType: "REMINDER",
+    entityId: data._id.toString(),
+    newValue: serializeAuditValue(data),
+    ...getAuditRequestMeta(req),
+  });
+  return sendResponse(res, 200, "Loan reminder updated successfully", data);
+});
+
+export const snoozeLoanReminder = asyncHandler(async (req, res) => {
+  const userId = req.user!.id;
+  const data = await reminderService.snoozeLoanReminder(userId, String(req.params.loanId), req.body.snoozedUntil);
+  await auditLogService.record({
+    userId,
+    action: "SETTINGS_CHANGED",
+    entityType: "REMINDER",
+    entityId: data._id.toString(),
+    newValue: serializeAuditValue(data),
+    ...getAuditRequestMeta(req),
+  });
+  return sendResponse(res, 200, "Loan reminder snoozed successfully", data);
+});
+
+export const testLoanReminderMessage = asyncHandler(async (req, res) => {
+  const data = await reminderService.testLoanReminder(req.user!.id, String(req.params.loanId));
+  return sendResponse(res, 201, "Loan reminder test queued successfully", data);
+});
+
+export const previewLoanReminderMessage = asyncHandler(async (req, res) => {
+  const data = await reminderService.previewLoanReminderMessage(req.user!.id, String(req.params.loanId));
+  return sendResponse(res, 200, "Loan reminder preview fetched successfully", data);
+});

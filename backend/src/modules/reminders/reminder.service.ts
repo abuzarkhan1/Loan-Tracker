@@ -4,10 +4,12 @@ import { isRedisReady, queueRedisConnection } from "../../config/redis";
 import { jobNames } from "../../jobs/job.constants";
 import { NotificationJobPayload } from "../../jobs/job.types";
 import { notificationQueue } from "../../queues/notification.queue";
+import { ApiError } from "../../utils/apiError";
 import { buildPaginationMeta } from "../../utils/pagination";
 import { dashboardService } from "../dashboard/dashboard.service";
 import { LoanModel } from "../loans/loan.model";
 import { NotificationLogModel } from "./notification-log.model";
+import { LoanReminderFrequency, LoanReminderModel, LoanReminderTone } from "./loan-reminder.model";
 import { NotificationStatus, ReminderType, WeekDay } from "./reminder.enums";
 import { IReminderSettings, ReminderSettingsModel } from "./reminder-settings.model";
 
@@ -31,6 +33,15 @@ type NotificationLogFilters = {
   limit: number;
 };
 
+type LoanReminderPayload = Partial<{
+  enabled: boolean;
+  remindBeforeDays: number;
+  repeatUntilPaid: boolean;
+  repeatFrequency: LoanReminderFrequency;
+  tone: LoanReminderTone;
+  customMessage: string;
+}>;
+
 const toObjectId = (id: string) => new Types.ObjectId(id);
 
 const schedulerIds = {
@@ -49,6 +60,22 @@ const weeklyCronFromTime = (day: WeekDay, time: string) => {
   const [hour, minute] = time.split(":").map(Number);
   const dayIndex = ["SUNDAY", "MONDAY", "TUESDAY", "WEDNESDAY", "THURSDAY", "FRIDAY", "SATURDAY"].indexOf(day);
   return `${minute} ${hour} * * ${dayIndex}`;
+};
+
+const calculateLoanReminderDate = (dueDate?: Date, remindBeforeDays = 1, snoozedUntil?: Date) => {
+  if (snoozedUntil && snoozedUntil.getTime() > Date.now()) return snoozedUntil;
+  if (!dueDate) return undefined;
+  const date = new Date(dueDate);
+  date.setDate(date.getDate() - remindBeforeDays);
+  date.setHours(9, 0, 0, 0);
+  return date;
+};
+
+const buildLoanReminderMessage = (contactName: string, amount: number, tone: LoanReminderTone, customMessage?: string) => {
+  if (customMessage) return customMessage;
+  if (tone === "POLITE") return `Salam, ${contactName} ka Rs ${amount} loan reminder hai. Jab easy ho update kar dein.`;
+  if (tone === "STRICT") return `${contactName} ka Rs ${amount} loan due hai. Please payment timeline confirm karein.`;
+  return `${contactName} ka Rs ${amount} loan due reminder.`;
 };
 
 const buildSummaryText = async (userId: string) => {
@@ -118,6 +145,84 @@ export const reminderService = {
       logs,
       pagination: buildPaginationMeta(filters.page, limit, total),
     };
+  },
+
+  async getLoanReminder(userId: string, loanId: string) {
+    const loan = await LoanModel.findOne({ _id: loanId, userId });
+    if (!loan) throw new ApiError(404, "Loan not found");
+
+    return LoanReminderModel.findOneAndUpdate(
+      { userId: toObjectId(userId), loanId: toObjectId(loanId) },
+      {
+        $setOnInsert: {
+          userId: toObjectId(userId),
+          loanId: toObjectId(loanId),
+          nextReminderAt: calculateLoanReminderDate(loan.dueDate, 1),
+        },
+      },
+      { new: true, upsert: true, setDefaultsOnInsert: true },
+    );
+  },
+
+  async updateLoanReminder(userId: string, loanId: string, payload: LoanReminderPayload) {
+    const loan = await LoanModel.findOne({ _id: loanId, userId });
+    if (!loan) throw new ApiError(404, "Loan not found");
+
+    const nextReminderAt = calculateLoanReminderDate(
+      loan.dueDate,
+      payload.remindBeforeDays ?? undefined,
+    );
+    const reminder = await LoanReminderModel.findOneAndUpdate(
+      { userId: toObjectId(userId), loanId: toObjectId(loanId) },
+      {
+        $set: {
+          ...payload,
+          ...(nextReminderAt ? { nextReminderAt } : {}),
+        },
+        $setOnInsert: { userId: toObjectId(userId), loanId: toObjectId(loanId) },
+      },
+      { new: true, upsert: true, setDefaultsOnInsert: true, runValidators: true },
+    );
+
+    await this.syncLoanReminderScheduler(userId, loanId);
+    return reminder;
+  },
+
+  async snoozeLoanReminder(userId: string, loanId: string, snoozedUntil: Date) {
+    const reminder = await this.updateLoanReminder(userId, loanId, {});
+    reminder.snoozedUntil = snoozedUntil;
+    reminder.nextReminderAt = snoozedUntil;
+    await reminder.save();
+    await this.syncLoanReminderScheduler(userId, loanId);
+    return reminder;
+  },
+
+  async previewLoanReminderMessage(userId: string, loanId: string) {
+    const [loan, reminder] = await Promise.all([
+      LoanModel.findOne({ _id: loanId, userId }).populate("contactId", "name"),
+      this.getLoanReminder(userId, loanId),
+    ]);
+    if (!loan) throw new ApiError(404, "Loan not found");
+    const contactName = loan.contactId && typeof loan.contactId === "object" && "name" in loan.contactId
+      ? String((loan.contactId as { name?: string }).name || "Contact")
+      : "Contact";
+    return {
+      title: "Loan Reminder",
+      body: buildLoanReminderMessage(contactName, loan.remainingAmount, reminder.tone, reminder.customMessage),
+      nextReminderAt: reminder.nextReminderAt,
+    };
+  },
+
+  async testLoanReminder(userId: string, loanId: string) {
+    const preview = await this.previewLoanReminderMessage(userId, loanId);
+    return this.enqueueNotification({
+      userId,
+      loanId,
+      type: ReminderType.CUSTOM,
+      title: preview.title,
+      body: preview.body,
+      scheduledFor: new Date().toISOString(),
+    });
   },
 
   async createNotification(payload: NotificationJobPayload) {
@@ -355,6 +460,36 @@ export const reminderService = {
     } else {
       await notificationQueue.removeJobScheduler(schedulerIds.weekly(userId));
     }
+  },
+
+  async syncLoanReminderScheduler(userId: string, loanId: string) {
+    if (!isRedisReady(queueRedisConnection)) return;
+
+    const [reminder, loan] = await Promise.all([
+      LoanReminderModel.findOne({ userId, loanId }),
+      LoanModel.findOne({ _id: loanId, userId }),
+    ]);
+    if (!reminder || !loan || !reminder.enabled || loan.remainingAmount <= 0 || !reminder.nextReminderAt) {
+      await notificationQueue.remove(`loan-reminder:${userId}:${loanId}`);
+      return;
+    }
+
+    const preview = await this.previewLoanReminderMessage(userId, loanId);
+    await notificationQueue.add(
+      jobNames.dueSoonReminder,
+      {
+        userId,
+        loanId,
+        type: ReminderType.CUSTOM,
+        title: preview.title,
+        body: preview.body,
+        scheduledFor: reminder.nextReminderAt.toISOString(),
+      },
+      {
+        jobId: `loan-reminder:${userId}:${loanId}`,
+        delay: Math.max(0, reminder.nextReminderAt.getTime() - Date.now()),
+      },
+    );
   },
 
   getJobName(type: ReminderType) {

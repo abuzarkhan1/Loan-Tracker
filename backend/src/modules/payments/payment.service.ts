@@ -8,6 +8,8 @@ import { PaymentProofModel } from "./proofs/payment-proof.model";
 import { localStorageService } from "../../storage/local-storage.service";
 import { buildPaginationMeta } from "../../utils/pagination";
 import { ContactModel } from "../contacts/contact.model";
+import { promiseService } from "../promises/promise.service";
+import { transactionService } from "../transactions/transaction.service";
 
 const normalizePaymentPayload = <T extends Record<string, unknown>>(payload: T) => {
   const normalized = { ...payload };
@@ -119,10 +121,18 @@ export const paymentService = {
     });
 
     const updatedLoan = await loanService.recalculateLoanTotals(loan._id.toString(), userId);
+    await transactionService.upsertLoanPaymentTransaction(userId, payment, loan);
+    const promiseSuggestion = await promiseService.getPaymentPromiseSuggestion(
+      userId,
+      loan._id.toString(),
+      payment.amount,
+      payment.paymentDate,
+    );
 
     return {
       payment,
       loan: updatedLoan,
+      promiseSuggestion,
     };
   },
 
@@ -178,6 +188,7 @@ export const paymentService = {
 
     await payment.save();
     const updatedLoan = await loanService.recalculateLoanTotals(loan._id.toString(), userId);
+    await transactionService.upsertLoanPaymentTransaction(userId, payment, loan);
 
     return {
       payment,
@@ -193,6 +204,7 @@ export const paymentService = {
 
     const loanId = payment.loanId.toString();
     const proof = await PaymentProofModel.findOne({ paymentId, userId });
+    await transactionService.deleteByPayment(userId, paymentId);
     await payment.deleteOne();
     if (proof) {
       await localStorageService.remove(proof.storagePath);

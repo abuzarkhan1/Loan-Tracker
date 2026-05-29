@@ -5,6 +5,7 @@ import { Download } from "../pages/Download";
 import { Features } from "../pages/Features";
 import { Home } from "../pages/Home";
 import { HowItWorks } from "../pages/HowItWorks";
+import { PaymentRequest } from "../pages/PaymentRequest";
 import { PrivacyPolicy } from "../pages/PrivacyPolicy";
 import { Screenshots } from "../pages/Screenshots";
 import { Terms } from "../pages/Terms";
@@ -22,6 +23,7 @@ const router = createBrowserRouter([
       { path: "privacy-policy", element: <PrivacyPolicy /> },
       { path: "terms", element: <Terms /> },
       { path: "contact", element: <Contact /> },
+      { path: "payment-request/:token", element: <PaymentRequest /> },
     ],
   },
 ]);

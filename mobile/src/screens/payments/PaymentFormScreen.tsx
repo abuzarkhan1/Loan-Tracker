@@ -134,10 +134,31 @@ export const PaymentFormScreen = ({ navigation, route }: Props) => {
       if (nextPaymentId && selectedProof) {
         await proofUploadMutation.mutateAsync({ nextPaymentId, proof: selectedProof });
       }
+      const promiseSuggestion = data.promiseSuggestion;
       await queryClient.invalidateQueries({ queryKey: ["loan", loanId] });
       await queryClient.invalidateQueries({ queryKey: ["loans"] });
       await queryClient.invalidateQueries({ queryKey: ["dashboard"] });
+      await queryClient.invalidateQueries({ queryKey: ["promises"] });
       navigation.goBack();
+      if (promiseSuggestion?.promiseId) {
+        setTimeout(() => {
+          showAlert({
+            title: "Promise matched",
+            message: promiseSuggestion.message,
+            buttons: [
+              { text: "Not Now", style: "cancel" },
+              {
+                text: "Mark Kept",
+                onPress: async () => {
+                  await api.markPromiseKept(promiseSuggestion.promiseId);
+                  await queryClient.invalidateQueries({ queryKey: ["promises"] });
+                  await queryClient.invalidateQueries({ queryKey: ["recovery"] });
+                },
+              },
+            ],
+          });
+        }, 250);
+      }
     },
   });
 

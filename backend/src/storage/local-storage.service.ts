@@ -6,16 +6,19 @@ import { StoredFile } from "./storage.types";
 const uploadRoot = path.resolve(process.cwd(), env.UPLOAD_DIR);
 const paymentProofDir = path.join(uploadRoot, "payment-proofs");
 const reportsDir = path.join(uploadRoot, "reports");
+const receiptsDir = path.join(uploadRoot, "receipts");
 
 export const localStorageService = {
   uploadRoot,
   paymentProofDir,
   reportsDir,
+  receiptsDir,
 
   async ensureDirectories() {
     await Promise.all([
       fs.mkdir(paymentProofDir, { recursive: true }),
       fs.mkdir(reportsDir, { recursive: true }),
+      fs.mkdir(receiptsDir, { recursive: true }),
     ]);
   },
 

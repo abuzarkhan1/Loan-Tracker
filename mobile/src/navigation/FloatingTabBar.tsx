@@ -1,5 +1,5 @@
 import type { BottomTabBarProps } from "@react-navigation/bottom-tabs";
-import { BarChart3, ContactRound, Home, Landmark, Settings2 } from "lucide-react-native";
+import { BarChart3, ContactRound, Home, Landmark, Settings2, WalletCards } from "lucide-react-native";
 import { Text, TouchableOpacity, View } from "react-native";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
 import { useAppTheme } from "../providers/ThemeProvider";
@@ -7,8 +7,9 @@ import { fontFamily } from "../utils/theme";
 
 const tabMeta = {
   Dashboard: { label: "Home", icon: Home },
-  Contacts: { label: "Contacts", icon: ContactRound },
   Loans: { label: "Loans", icon: Landmark },
+  Money: { label: "Money", icon: WalletCards },
+  Contacts: { label: "Contacts", icon: ContactRound },
   Reports: { label: "Reports", icon: BarChart3 },
   Settings: { label: "Settings", icon: Settings2 },
 };
@@ -70,7 +71,7 @@ export const FloatingTabBar = ({ state, navigation }: BottomTabBarProps) => {
               onPress={onPress}
               style={{
                 minHeight: 52,
-                flex: focused ? 1.55 : 0.86,
+                flex: focused ? 1.32 : 0.72,
                 borderRadius: 999,
                 alignItems: "center",
                 justifyContent: "center",
@@ -81,14 +82,14 @@ export const FloatingTabBar = ({ state, navigation }: BottomTabBarProps) => {
                 borderColor: focused ? "transparent" : theme.border,
               }}
             >
-              <Icon color={focused ? theme.white : theme.muted} size={20} />
+              <Icon color={focused ? theme.white : theme.muted} size={19} />
               {focused ? (
                 <Text
                   numberOfLines={1}
                   style={{
                     color: theme.white,
                     fontFamily: fontFamily.extraBold,
-                    fontSize: 12,
+                    fontSize: 11,
                   }}
                 >
                   {meta.label}

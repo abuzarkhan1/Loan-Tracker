@@ -5,23 +5,31 @@ import { useQuery } from "@tanstack/react-query";
 import { 
   ArrowDownLeft, 
   ArrowUpRight, 
+  Banknote,
   Landmark, 
   Plus, 
   ReceiptText, 
   Scale, 
+  WalletCards,
   Users, 
   TrendingUp, 
   Activity, 
-  Sparkles 
+  Sparkles,
+  Brain,
+  Heart,
+  Pin,
+  Zap,
+  AlertTriangle
 } from "lucide-react-native";
 import { Dimensions, ScrollView, Text, TouchableOpacity, View } from "react-native";
 import { LineChart } from "react-native-chart-kit";
 import { api } from "../../api/client";
 import { EmptyState, ErrorState, LoadingState } from "../../components/StateViews";
 import { Screen } from "../../components/Screen";
+import { MoneySummaryCard } from "../../components/MoneySummaryCard";
 import { RootStackParamList } from "../../navigation/types";
 import { useAppTheme } from "../../providers/ThemeProvider";
-import { formatCurrency } from "../../utils/format";
+import { formatCurrency, formatDate } from "../../utils/format";
 import { fontFamily } from "../../utils/theme";
 
 type Navigation = NativeStackNavigationProp<RootStackParamList>;
@@ -43,6 +51,30 @@ export const DashboardScreen = () => {
   const topContactsQuery = useQuery({ 
     queryKey: ["dashboard", "topContacts"], 
     queryFn: () => api.getTopContacts(5) 
+  });
+  const insightsQuery = useQuery({
+    queryKey: ["dashboard", "insights"],
+    queryFn: () => api.getDashboardInsights(),
+  });
+  const favoriteContactsQuery = useQuery({
+    queryKey: ["contacts", "favorites", "dashboard"],
+    queryFn: () => api.getFavoriteContacts(6),
+  });
+  const pinnedLoansQuery = useQuery({
+    queryKey: ["loans", "pinned", "dashboard"],
+    queryFn: () => api.getPinnedLoans(5),
+  });
+  const activityQuery = useQuery({
+    queryKey: ["activity", "recent", "dashboard"],
+    queryFn: () => api.getRecentActivity({ limit: 5 }),
+  });
+  const recoveryQuery = useQuery({
+    queryKey: ["recovery", "center", "dashboard"],
+    queryFn: api.getRecoveryCenter,
+  });
+  const financeDashboardQuery = useQuery({
+    queryKey: ["finance", "dashboard", "home"],
+    queryFn: () => api.getFinanceDashboard(),
   });
   const meQuery = useQuery({ 
     queryKey: ["auth", "me"], 
@@ -79,6 +111,7 @@ export const DashboardScreen = () => {
     summaryQuery.refetch();
     monthlyQuery.refetch();
     topContactsQuery.refetch();
+    financeDashboardQuery.refetch();
     meQuery.refetch();
   };
 
@@ -187,7 +220,149 @@ export const DashboardScreen = () => {
               </View>
             </View>
 
+            {financeDashboardQuery.data ? (
+              <View>
+                <View className="mb-4 flex-row items-center justify-between">
+                  <View>
+                    <Text className="text-base font-bold text-dark" style={{ fontFamily: fontFamily.bold }}>Money Summary</Text>
+                    <Text className="mt-1 text-xs font-semibold text-muted">
+                      {formatDate(financeDashboardQuery.data.salaryCycle.cycleStartDate)} - {formatDate(financeDashboardQuery.data.salaryCycle.cycleEndDate)}
+                    </Text>
+                  </View>
+                  <TouchableOpacity onPress={() => navigation.navigate("MainTabs", { screen: "Money" })}>
+                    <Text className="text-xs font-bold text-primary" style={{ fontFamily: fontFamily.bold }}>Open Money</Text>
+                  </TouchableOpacity>
+                </View>
+                <View className="flex-row gap-3">
+                  <MoneySummaryCard
+                    title="Available Cash"
+                    value={formatCurrency(financeDashboardQuery.data.availableCash)}
+                    icon={WalletCards}
+                    tone="primary"
+                  />
+                  <MoneySummaryCard
+                    title="Expenses"
+                    value={formatCurrency(financeDashboardQuery.data.totalExpenses)}
+                    subtitle={`${formatCurrency(financeDashboardQuery.data.loanRepayments)} loan repaid`}
+                    icon={ArrowUpRight}
+                    tone="danger"
+                  />
+                </View>
+                <View className="mt-3 flex-row gap-3">
+                  <TouchableOpacity
+                    activeOpacity={0.88}
+                    onPress={() => navigation.navigate("AddExpense")}
+                    className="flex-1 flex-row items-center justify-center gap-2 rounded-2xl border border-border bg-card p-4"
+                    style={theme.shadowSoft}
+                  >
+                    <ArrowUpRight color={theme.primary} size={18} />
+                    <Text className="text-sm font-black text-dark">Add Expense</Text>
+                  </TouchableOpacity>
+                  <TouchableOpacity
+                    activeOpacity={0.88}
+                    onPress={() => navigation.navigate("SalaryDashboard")}
+                    className="flex-1 flex-row items-center justify-center gap-2 rounded-2xl border border-border bg-card p-4"
+                    style={theme.shadowSoft}
+                  >
+                    <Banknote color={theme.primary} size={18} />
+                    <Text className="text-sm font-black text-dark">Salary</Text>
+                  </TouchableOpacity>
+                </View>
+              </View>
+            ) : null}
+
             {/* --- Logically Clustered Metrics --- */}
+            <View>
+              <View className="mb-4 flex-row items-center justify-between">
+                <Text className="text-base font-bold text-dark" style={{ fontFamily: fontFamily.bold }}>Smart Insights</Text>
+                <TouchableOpacity onPress={() => navigation.navigate("InsightsDetail")}>
+                  <Text className="text-xs font-bold text-primary" style={{ fontFamily: fontFamily.bold }}>View All</Text>
+                </TouchableOpacity>
+              </View>
+              {insightsQuery.data?.length ? (
+                <ScrollView horizontal showsHorizontalScrollIndicator={false} contentContainerStyle={{ gap: 14, paddingVertical: 4 }}>
+                  {insightsQuery.data.slice(0, 5).map((insight) => (
+                    <TouchableOpacity
+                      key={insight.id}
+                      activeOpacity={0.9}
+                      onPress={() => {
+                        if (insight.actionRoute === "LoanDetail" && insight.metadata?.loanId) {
+                          navigation.navigate("LoanDetail", { loanId: String(insight.metadata.loanId) });
+                        } else if (insight.actionRoute === "ContactLoanProfile" && insight.metadata?.contactId) {
+                          navigation.navigate("ContactLoanProfile", { contactId: String(insight.metadata.contactId) });
+                        } else {
+                          navigation.navigate("InsightsDetail");
+                        }
+                      }}
+                      className="w-64 rounded-2xl border border-border bg-card p-4"
+                      style={theme.shadowSoft}
+                    >
+                      <View className="flex-row items-center gap-3">
+                        <View className="h-9 w-9 items-center justify-center rounded-xl bg-peach">
+                          <Brain color={theme.primaryDark} size={18} />
+                        </View>
+                        <Text className="flex-1 text-xs font-black uppercase text-muted">{insight.type.replace("_", " ")}</Text>
+                      </View>
+                      <Text className="mt-3 text-sm font-black text-dark">{insight.title}</Text>
+                      <Text numberOfLines={2} className="mt-2 text-xs font-semibold text-muted">{insight.description}</Text>
+                    </TouchableOpacity>
+                  ))}
+                </ScrollView>
+              ) : (
+                <EmptyState title="No important insights right now" subtitle="Aapka loan picture stable lag raha hai." />
+              )}
+            </View>
+
+            <View className="flex-row gap-3">
+              <TouchableOpacity
+                activeOpacity={0.88}
+                onPress={() => navigation.navigate("QuickAddPayment")}
+                className="flex-1 flex-row items-center justify-center gap-2 rounded-2xl border border-border bg-card p-4"
+                style={theme.shadowSoft}
+              >
+                <Zap color={theme.primary} size={18} />
+                <Text className="text-sm font-black text-dark">Quick Payment</Text>
+              </TouchableOpacity>
+              <TouchableOpacity
+                activeOpacity={0.88}
+                onPress={() => navigation.navigate("RecentActivity")}
+                className="flex-1 flex-row items-center justify-center gap-2 rounded-2xl border border-border bg-card p-4"
+                style={theme.shadowSoft}
+              >
+                <Activity color={theme.primary} size={18} />
+                <Text className="text-sm font-black text-dark">Activity</Text>
+              </TouchableOpacity>
+            </View>
+
+            {recoveryQuery.data ? (
+              <TouchableOpacity
+                activeOpacity={0.9}
+                onPress={() => navigation.navigate("RecoveryCenter")}
+                className="rounded-3xl border border-border bg-card p-5"
+                style={theme.shadowSoft}
+              >
+                <View className="flex-row items-center gap-4">
+                  <View className="h-12 w-12 items-center justify-center rounded-2xl bg-peach">
+                    <AlertTriangle color={theme.primaryDark} size={24} />
+                  </View>
+                  <View className="flex-1">
+                    <Text className="text-base font-black text-dark">Recovery Center</Text>
+                    <Text className="mt-1 text-sm font-semibold text-muted">
+                      {(recoveryQuery.data.overdueLoans.length + recoveryQuery.data.todayDueLoans.length + recoveryQuery.data.promiseDue.length)} loans need attention
+                    </Text>
+                  </View>
+                  <Text className="text-xs font-black text-primary">Open</Text>
+                </View>
+                {recoveryQuery.data.overdueLoans[0] ? (
+                  <View className="mt-4 rounded-2xl bg-background-soft p-4">
+                    <Text className="text-xs font-black uppercase text-muted">Top action</Text>
+                    <Text className="mt-1 text-sm font-bold text-dark">
+                      {recoveryQuery.data.overdueLoans[0].contactName} · {formatCurrency(recoveryQuery.data.overdueLoans[0].remainingAmount)} overdue
+                    </Text>
+                  </View>
+                ) : null}
+              </TouchableOpacity>
+            ) : null}
 
             {/* Section 1: Active Loan Status Cluster */}
             <View className="flex-row justify-between gap-3">
@@ -280,6 +455,80 @@ export const DashboardScreen = () => {
             </View>
 
             {/* --- Horizontal Top Active Clients Slider --- */}
+            {favoriteContactsQuery.data?.length ? (
+              <View>
+                <View className="flex-row items-center justify-between mb-4">
+                  <Text className="text-base font-bold text-dark" style={{ fontFamily: fontFamily.bold }}>Favorite Contacts</Text>
+                  <Heart color={theme.primary} size={16} />
+                </View>
+                <ScrollView horizontal showsHorizontalScrollIndicator={false} contentContainerStyle={{ gap: 14, paddingVertical: 4 }}>
+                  {favoriteContactsQuery.data.map((contact) => (
+                    <TouchableOpacity
+                      key={contact._id}
+                      activeOpacity={0.9}
+                      onPress={() => navigation.navigate("ContactLoanProfile", { contactId: contact._id })}
+                      className="w-36 rounded-2xl border border-border bg-card p-4"
+                      style={theme.shadowSoft}
+                    >
+                      <Text className="text-sm font-black text-dark" numberOfLines={1}>{contact.name}</Text>
+                      <Text className="mt-1 text-[11px] font-semibold text-muted" numberOfLines={1}>{contact.phone || "No phone"}</Text>
+                      <Text className="mt-3 text-xs font-black text-primary">
+                        {formatCurrency(contact.balanceSummary?.overallBalance || 0)}
+                      </Text>
+                    </TouchableOpacity>
+                  ))}
+                </ScrollView>
+              </View>
+            ) : null}
+
+            {pinnedLoansQuery.data?.length ? (
+              <View>
+                <View className="flex-row items-center justify-between mb-4">
+                  <Text className="text-base font-bold text-dark" style={{ fontFamily: fontFamily.bold }}>Pinned Loans</Text>
+                  <Pin color={theme.primary} size={16} />
+                </View>
+                <ScrollView horizontal showsHorizontalScrollIndicator={false} contentContainerStyle={{ gap: 14, paddingVertical: 4 }}>
+                  {pinnedLoansQuery.data.map((loan) => (
+                    <TouchableOpacity
+                      key={loan._id}
+                      activeOpacity={0.9}
+                      onPress={() => navigation.navigate("LoanDetail", { loanId: loan._id })}
+                      className="w-48 rounded-2xl border border-border bg-card p-4"
+                      style={theme.shadowSoft}
+                    >
+                      <Text className="text-[10px] font-black uppercase text-muted">{loan.type}</Text>
+                      <Text className="mt-2 text-base font-black text-dark">{formatCurrency(loan.remainingAmount)}</Text>
+                      <Text className="mt-1 text-xs font-semibold text-muted">{loan.status.replace("_", " ")}</Text>
+                    </TouchableOpacity>
+                  ))}
+                </ScrollView>
+              </View>
+            ) : null}
+
+            {activityQuery.data?.activities.length ? (
+              <View>
+                <View className="flex-row items-center justify-between mb-4">
+                  <Text className="text-base font-bold text-dark" style={{ fontFamily: fontFamily.bold }}>Recent Activity</Text>
+                  <TouchableOpacity onPress={() => navigation.navigate("RecentActivity")}>
+                    <Text className="text-xs font-bold text-primary" style={{ fontFamily: fontFamily.bold }}>View All</Text>
+                  </TouchableOpacity>
+                </View>
+                <View className="gap-3">
+                  {activityQuery.data.activities.slice(0, 5).map((item) => (
+                    <View key={item.id} className="flex-row items-center gap-3 rounded-2xl border border-border bg-card p-4" style={theme.shadowSoft}>
+                      <View className="h-10 w-10 items-center justify-center rounded-xl bg-background-soft">
+                        <Activity color={theme.primary} size={18} />
+                      </View>
+                      <View className="flex-1">
+                        <Text className="text-sm font-black text-dark">{item.title}</Text>
+                        <Text numberOfLines={1} className="mt-1 text-xs font-semibold text-muted">{item.description}</Text>
+                      </View>
+                    </View>
+                  ))}
+                </View>
+              </View>
+            ) : null}
+
             <View>
               <View className="flex-row items-center justify-between mb-4">
                 <Text className="text-base font-bold text-dark" style={{ fontFamily: fontFamily.bold }}>Top Active Clients</Text>

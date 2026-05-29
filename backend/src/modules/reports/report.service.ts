@@ -14,6 +14,7 @@ import { buildPaginationMeta } from "../../utils/pagination";
 import { ContactModel } from "../contacts/contact.model";
 import { LoanModel } from "../loans/loan.model";
 import { PaymentModel } from "../payments/payment.model";
+import { LoanStatus, LoanType, PaymentMethod, PaymentType } from "../../constants/enums";
 import { ReportModel, ReportStatus, ReportType } from "./report.model";
 
 type ReportFilters = {
@@ -299,6 +300,160 @@ export const reportService = {
 
   getReport(userId: string, reportId: string) {
     return ReportModel.findOne({ _id: toObjectId(reportId), userId: toObjectId(userId) });
+  },
+
+  async getOverview(userId: string) {
+    const [loanStats, paymentStats, overdueAmount, completedLoans, totalLoans] = await Promise.all([
+      LoanModel.aggregate([
+        { $match: { userId: toObjectId(userId) } },
+        {
+          $group: {
+            _id: "$type",
+            amount: { $sum: "$amount" },
+            remainingAmount: { $sum: "$remainingAmount" },
+            count: { $sum: 1 },
+          },
+        },
+      ]),
+      PaymentModel.aggregate([
+        { $match: { userId: toObjectId(userId) } },
+        { $group: { _id: "$type", amount: { $sum: "$amount" }, count: { $sum: 1 } } },
+      ]),
+      LoanModel.aggregate([
+        { $match: { userId: toObjectId(userId), status: LoanStatus.OVERDUE } },
+        { $group: { _id: null, amount: { $sum: "$remainingAmount" }, count: { $sum: 1 } } },
+      ]),
+      LoanModel.countDocuments({ userId, status: LoanStatus.COMPLETED }),
+      LoanModel.countDocuments({ userId }),
+    ]);
+
+    const getLoan = (type: LoanType) => loanStats.find((row) => row._id === type) || { amount: 0, remainingAmount: 0, count: 0 };
+    const getPayment = (type: PaymentType) => paymentStats.find((row) => row._id === type) || { amount: 0, count: 0 };
+    return {
+      monthlyGivenAmount: getLoan(LoanType.GIVEN).amount,
+      monthlyTakenAmount: getLoan(LoanType.TAKEN).amount,
+      totalReceivedAmount: getPayment(PaymentType.RECEIVED).amount,
+      totalPaidAmount: getPayment(PaymentType.PAID).amount,
+      overdueAmount: overdueAmount[0]?.amount || 0,
+      overdueCount: overdueAmount[0]?.count || 0,
+      recoveryRate: totalLoans ? Math.round((completedLoans / totalLoans) * 100) : 0,
+      completedLoansCount: completedLoans,
+      totalLoans,
+    };
+  },
+
+  async getMonthlySummary(userId: string, month: number, year: number) {
+    const start = new Date(year, month - 1, 1);
+    const end = new Date(year, month, 0, 23, 59, 59, 999);
+    const [loans, payments] = await Promise.all([
+      LoanModel.aggregate([
+        { $match: { userId: toObjectId(userId), issueDate: { $gte: start, $lte: end } } },
+        { $group: { _id: "$type", amount: { $sum: "$amount" }, count: { $sum: 1 } } },
+      ]),
+      PaymentModel.aggregate([
+        { $match: { userId: toObjectId(userId), paymentDate: { $gte: start, $lte: end } } },
+        { $group: { _id: "$type", amount: { $sum: "$amount" }, count: { $sum: 1 } } },
+      ]),
+    ]);
+    const given = loans.find((row) => row._id === LoanType.GIVEN)?.amount || 0;
+    const taken = loans.find((row) => row._id === LoanType.TAKEN)?.amount || 0;
+    const received = payments.find((row) => row._id === PaymentType.RECEIVED)?.amount || 0;
+    const paid = payments.find((row) => row._id === PaymentType.PAID)?.amount || 0;
+    return { month, year, given, taken, received, paid, netBalance: received + given - paid - taken };
+  },
+
+  async getOverdueReport(userId: string) {
+    const today = new Date();
+    const loans = await LoanModel.find({ userId, remainingAmount: { $gt: 0 }, status: LoanStatus.OVERDUE })
+      .populate("contactId", "name phone")
+      .sort({ dueDate: 1 });
+
+    return {
+      totalOverdueAmount: loans.reduce((sum, loan) => sum + loan.remainingAmount, 0),
+      overdueLoans: loans.map((loan) => ({
+        ...loan.toObject(),
+        overdueDays: loan.dueDate ? Math.max(1, Math.floor((today.getTime() - loan.dueDate.getTime()) / 86_400_000)) : 0,
+      })),
+    };
+  },
+
+  async getPaymentMethods(userId: string) {
+    const rows = await PaymentModel.aggregate([
+      { $match: { userId: toObjectId(userId) } },
+      { $group: { _id: "$method", amount: { $sum: "$amount" }, count: { $sum: 1 } } },
+      { $sort: { amount: -1 } },
+    ]);
+    const byMethod = new Map(rows.map((row) => [row._id, row]));
+    return Object.values(PaymentMethod).map((method) => ({
+      method,
+      amount: byMethod.get(method)?.amount || 0,
+      count: byMethod.get(method)?.count || 0,
+    }));
+  },
+
+  async getRecoveryRate(userId: string) {
+    const [completedLoans, totalLoans, paidResult] = await Promise.all([
+      LoanModel.countDocuments({ userId, status: LoanStatus.COMPLETED }),
+      LoanModel.countDocuments({ userId }),
+      LoanModel.aggregate([
+        { $match: { userId: toObjectId(userId) } },
+        { $group: { _id: null, paid: { $sum: "$paidAmount" }, total: { $sum: "$totalPayableAmount" } } },
+      ]),
+    ]);
+    const paid = paidResult[0]?.paid || 0;
+    const total = paidResult[0]?.total || 0;
+    return {
+      completedLoans,
+      totalLoans,
+      loanCompletionRate: totalLoans ? Math.round((completedLoans / totalLoans) * 100) : 0,
+      amountRecoveryRate: total ? Math.round((paid / total) * 100) : 0,
+      paidAmount: paid,
+      totalPayableAmount: total,
+    };
+  },
+
+  async getContactPerformance(userId: string) {
+    const rows = await LoanModel.aggregate([
+      { $match: { userId: toObjectId(userId) } },
+      {
+        $group: {
+          _id: "$contactId",
+          totalAmount: { $sum: "$amount" },
+          paidAmount: { $sum: "$paidAmount" },
+          remainingAmount: { $sum: "$remainingAmount" },
+          overdueLoans: { $sum: { $cond: [{ $eq: ["$status", LoanStatus.OVERDUE] }, 1, 0] } },
+          completedLoans: { $sum: { $cond: [{ $eq: ["$status", LoanStatus.COMPLETED] }, 1, 0] } },
+          loanCount: { $sum: 1 },
+        },
+      },
+      { $sort: { remainingAmount: -1 } },
+      { $limit: 20 },
+      { $lookup: { from: "contacts", localField: "_id", foreignField: "_id", as: "contact" } },
+      { $unwind: { path: "$contact", preserveNullAndEmptyArrays: true } },
+      {
+        $project: {
+          contactId: "$_id",
+          contactName: { $ifNull: ["$contact.name", "Deleted contact"] },
+          phone: "$contact.phone",
+          totalAmount: 1,
+          paidAmount: 1,
+          remainingAmount: 1,
+          overdueLoans: 1,
+          completedLoans: 1,
+          loanCount: 1,
+          recoveryRate: {
+            $cond: [{ $gt: ["$totalAmount", 0] }, { $round: [{ $multiply: [{ $divide: ["$paidAmount", "$totalAmount"] }, 100] }, 0] }, 0],
+          },
+        },
+      },
+    ]);
+
+    return {
+      contacts: rows,
+      bestPayingContacts: [...rows].sort((a, b) => b.recoveryRate - a.recoveryRate).slice(0, 5),
+      riskyContacts: rows.filter((row) => row.overdueLoans > 0).slice(0, 5),
+      highestPendingContacts: rows.slice(0, 5),
+    };
   },
 
   deleteReport(userId: string, reportId: string) {

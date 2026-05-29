@@ -55,6 +55,10 @@ export const LoansScreen = () => {
         limit: 50,
       }),
   });
+  const pinnedLoansQuery = useQuery({
+    queryKey: ["loans", "pinned"],
+    queryFn: () => api.getPinnedLoans(10),
+  });
 
   return (
     <Screen className="pt-5">
@@ -121,6 +125,15 @@ export const LoansScreen = () => {
       </View>
 
       <View className="mt-5 gap-3">
+        {pinnedLoansQuery.data?.length ? (
+          <>
+            <Text className="text-base font-black text-dark">Pinned Loans</Text>
+            {pinnedLoansQuery.data.map((loan) => (
+              <LoanCard key={`pinned-${loan._id}`} loan={loan} onPress={() => navigation.navigate("LoanDetail", { loanId: loan._id })} />
+            ))}
+            <View className="h-px bg-border" />
+          </>
+        ) : null}
         {loansQuery.isLoading ? <LoadingState label="Loading loans..." /> : null}
         {loansQuery.isError ? <ErrorState message="Loans load nahi ho sake." onRetry={loansQuery.refetch} /> : null}
         {loansQuery.data?.loans.length === 0 ? (

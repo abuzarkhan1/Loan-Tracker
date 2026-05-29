@@ -59,6 +59,35 @@ export const getLoanDetail = asyncHandler(async (req, res) => {
   return sendResponse(res, 200, "Loan detail fetched successfully", data);
 });
 
+export const getPinnedLoans = asyncHandler(async (req, res) => {
+  const userId = req.user!.id;
+  const key = cacheKeys.loans.pinned(userId, req.query as never);
+  const cached = await cacheService.get(key);
+  if (cached) {
+    return sendResponse(res, 200, "Pinned loans fetched successfully", cached);
+  }
+
+  const data = await loanService.getPinnedLoans(userId, Number(req.query.limit || 10));
+  await cacheService.set(key, data, cacheTtl.lists);
+  return sendResponse(res, 200, "Pinned loans fetched successfully", data);
+});
+
+export const setPinnedLoan = asyncHandler(async (req, res) => {
+  const userId = req.user!.id;
+  const loanId = String(req.params.loanId);
+  const data = await loanService.setPinned(userId, loanId, req.body.isPinned);
+  await cacheInvalidation.loanChanged(userId, { loanId, contactId: getDocumentId(data.contactId) });
+  await auditLogService.record({
+    userId,
+    action: req.body.isPinned ? "LOAN_PINNED" : "LOAN_UNPINNED",
+    entityType: "LOAN",
+    entityId: loanId,
+    newValue: serializeAuditValue(data),
+    ...getAuditRequestMeta(req),
+  });
+  return sendResponse(res, 200, "Pinned status updated successfully", data);
+});
+
 export const updateLoan = asyncHandler(async (req, res) => {
   const userId = req.user!.id;
   const loanId = String(req.params.loanId);

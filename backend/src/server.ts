@@ -5,7 +5,7 @@ import { app } from "./app";
 import { logger } from "./config/logger";
 import { connectRedis, closeRedis } from "./config/redis";
 import { localStorageService } from "./storage/local-storage.service";
-import { closeQueues } from "./queues";
+import { closeQueues, scheduleQueueJobs } from "./queues";
 import { closeWorkers, startWorkers } from "./workers";
 
 const startServer = async () => {
@@ -13,6 +13,7 @@ const startServer = async () => {
     await connectDB();
     await localStorageService.ensureDirectories();
     await connectRedis();
+    await scheduleQueueJobs();
     startWorkers();
 
     const server = app.listen(env.PORT, () => {

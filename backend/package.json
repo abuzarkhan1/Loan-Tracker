@@ -16,6 +16,7 @@
   "license": "MIT",
   "type": "commonjs",
   "dependencies": {
+    "@types/nodemailer": "^8.0.0",
     "bcrypt": "^6.0.0",
     "bullmq": "^5.77.6",
     "cors": "^2.8.6",
@@ -28,6 +29,7 @@
     "mongoose": "^9.6.3",
     "morgan": "^1.10.1",
     "multer": "^2.1.1",
+    "nodemailer": "^8.0.10",
     "pdfkit": "^0.18.0",
     "winston": "^3.19.0",
     "zod": "^4.4.3"

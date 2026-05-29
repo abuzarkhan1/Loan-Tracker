@@ -70,3 +70,16 @@ export const getTopContacts = asyncHandler(async (req, res) => {
   await cacheService.set(key, data, cacheTtl.charts);
   return sendResponse(res, 200, "Top contacts fetched successfully", data);
 });
+
+export const getInsights = asyncHandler(async (req, res) => {
+  const userId = req.user!.id;
+  const key = cacheKeys.dashboard.insights(userId);
+  const cached = await cacheService.get(key);
+  if (cached) {
+    return sendResponse(res, 200, "Dashboard insights fetched successfully", cached);
+  }
+
+  const data = await dashboardService.getInsights(userId);
+  await cacheService.set(key, data, cacheTtl.insights);
+  return sendResponse(res, 200, "Dashboard insights fetched successfully", data);
+});

@@ -22,6 +22,7 @@ export interface ILoan extends Document {
   interestRate?: number;
   interestAmount: number;
   totalPayableAmount: number;
+  isPinned: boolean;
   createdAt: Date;
   updatedAt: Date;
 }
@@ -128,11 +129,18 @@ const loanSchema = new Schema<ILoan>(
       },
       required: true,
     },
+    isPinned: {
+      type: Boolean,
+      default: false,
+      required: true,
+      index: true,
+    },
   },
   { timestamps: true },
 );
 
 loanSchema.index({ userId: 1, type: 1, status: 1 });
 loanSchema.index({ userId: 1, issueDate: -1 });
+loanSchema.index({ userId: 1, isPinned: 1, updatedAt: -1 });
 
 export const LoanModel = mongoose.model<ILoan>("Loan", loanSchema);

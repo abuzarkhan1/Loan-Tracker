@@ -2,7 +2,7 @@ import { useNavigation } from "@react-navigation/native";
 import { NativeStackNavigationProp } from "@react-navigation/native-stack";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { useMutation, useQueryClient } from "@tanstack/react-query";
-import { Bell, BellRing, ChevronRight, Edit3, FileSpreadsheet, FileText, History, LogOut, Mail, Moon, Palette, Save, Shield, Sun, UserRound } from "lucide-react-native";
+import { Activity, Banknote, Bell, BellRing, ChevronRight, CreditCard, DatabaseBackup, Edit3, FileSpreadsheet, FileText, History, Link2, LogOut, Mail, MessageSquareText, Moon, Palette, PiggyBank, ReceiptText, Save, Shield, Sun, Tags, UserRound, WalletCards } from "lucide-react-native";
 import { useEffect, useState } from "react";
 import { useForm } from "react-hook-form";
 import { Text, TouchableOpacity, View } from "react-native";
@@ -278,10 +278,83 @@ export const SettingsScreen = () => {
           icon={Bell}
           onPress={() => navigation.navigate("ReminderLogs")}
         />
+        <View className="h-px bg-border" />
+        <SettingsRow
+          title="Reminder Templates"
+          subtitle="WhatsApp, email aur copy message templates."
+          icon={MessageSquareText}
+          onPress={() => navigation.navigate("ReminderTemplates")}
+        />
+      </View>
+
+      <View className="mt-5 gap-3 rounded-lg border border-border bg-card p-5" style={theme.shadowSoft}>
+        <Text className="text-xs font-black uppercase text-muted">Money</Text>
+        <SettingsRow
+          title="Salary Settings"
+          subtitle="Salary day, cycle aur expected salary."
+          icon={Banknote}
+          onPress={() => navigation.navigate("SalarySettings")}
+        />
+        <View className="h-px bg-border" />
+        <SettingsRow
+          title="Categories"
+          subtitle="Income aur expense categories manage karein."
+          icon={Tags}
+          onPress={() => navigation.navigate("Categories")}
+        />
+        <View className="h-px bg-border" />
+        <SettingsRow
+          title="Budget Settings"
+          subtitle="Monthly aur salary-cycle budget."
+          icon={WalletCards}
+          onPress={() => navigation.navigate("Budget")}
+        />
+        <View className="h-px bg-border" />
+        <SettingsRow
+          title="Savings Goals"
+          subtitle="Targets aur progress tracking."
+          icon={PiggyBank}
+          onPress={() => navigation.navigate("SavingsGoals")}
+        />
+        <View className="h-px bg-border" />
+        <SettingsRow
+          title="Payment Methods"
+          subtitle="Cash, bank aur wallet cash flow breakdown."
+          icon={CreditCard}
+          onPress={() => navigation.navigate("PaymentMethodBreakdownFinance")}
+        />
       </View>
 
       <View className="mt-5 gap-3 rounded-lg border border-border bg-card p-5" style={theme.shadowSoft}>
         <Text className="text-xs font-black uppercase text-muted">Reports & Export</Text>
+        <SettingsRow
+          title="Email Reports"
+          subtitle="Email preferences, weekly aur monthly reports."
+          icon={Mail}
+          onPress={() => navigation.navigate("EmailReportsSettings")}
+        />
+        <View className="h-px bg-border" />
+        <SettingsRow
+          title="Email Logs"
+          subtitle="Queued, sent aur failed email history."
+          icon={Mail}
+          onPress={() => navigation.navigate("EmailLogs")}
+        />
+        <View className="h-px bg-border" />
+        <SettingsRow
+          title="Payment Requests"
+          subtitle="Shareable request links aur history."
+          icon={Link2}
+          onPress={() => navigation.navigate("PaymentRequestsHistory")}
+        />
+        <View className="h-px bg-border" />
+        <SettingsRow
+          title="Backup & Restore"
+          subtitle="Manual backups aur restore options."
+          icon={DatabaseBackup}
+          onPress={() => navigation.navigate("BackupRestore")}
+        />
+        <View className="h-px bg-border" />
         <SettingsRow
           title="Generate PDF"
           subtitle="Contact, monthly, complete history."
@@ -301,6 +374,20 @@ export const SettingsScreen = () => {
           subtitle="PDF/Excel status aur downloads."
           icon={History}
           onPress={() => navigation.navigate("ReportHistory")}
+        />
+        <View className="h-px bg-border" />
+        <SettingsRow
+          title="Receipt History"
+          subtitle="Payment aur loan receipts."
+          icon={ReceiptText}
+          onPress={() => navigation.navigate("ReceiptHistory")}
+        />
+        <View className="h-px bg-border" />
+        <SettingsRow
+          title="Activity History"
+          subtitle="Recent account activity timeline."
+          icon={Activity}
+          onPress={() => navigation.navigate("RecentActivity")}
         />
       </View>
 

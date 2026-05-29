@@ -23,6 +23,13 @@ const envSchema = z.object({
   UPLOAD_DIR: z.string().default("uploads"),
   PUBLIC_BASE_URL: z.string().optional(),
   MAX_PROOF_FILE_SIZE_MB: z.coerce.number().positive().default(5),
+  SMTP_HOST: z.string().optional(),
+  SMTP_PORT: z.coerce.number().int().positive().optional(),
+  SMTP_SECURE: z.coerce.boolean().default(false),
+  SMTP_USER: z.string().optional(),
+  SMTP_PASS: z.string().optional(),
+  EMAIL_FROM: z.string().default("Loan Tracker <no-reply@loantracker.local>"),
+  PUBLIC_WEBSITE_URL: z.string().optional(),
 });
 
 const parsed = envSchema.safeParse(process.env);

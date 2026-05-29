@@ -2,7 +2,7 @@ import { useMemo } from "react";
 import { useNavigation } from "@react-navigation/native";
 import { NativeStackNavigationProp } from "@react-navigation/native-stack";
 import { useQuery } from "@tanstack/react-query";
-import { ChevronRight, FileSpreadsheet, FileText, History, TrendingUp, Scale, ArrowDownLeft, ArrowUpRight } from "lucide-react-native";
+import { ChevronRight, FileSpreadsheet, FileText, History, TrendingUp, Scale, ArrowDownLeft, ArrowUpRight, AlertTriangle, CreditCard, Trophy, Mail } from "lucide-react-native";
 import { Dimensions, ScrollView, Text, TouchableOpacity, View } from "react-native";
 import { LineChart, PieChart, ProgressChart } from "react-native-chart-kit";
 import { api } from "../../api/client";
@@ -216,6 +216,77 @@ export const ReportsScreen = () => {
                 </View>
                 <ChevronRight color={theme.success} size={16} />
               </TouchableOpacity>
+
+              <TouchableOpacity
+                activeOpacity={0.9}
+                onPress={() => navigation.navigate("ReceiptHistory")}
+                className="flex-row items-center justify-between rounded-2xl border p-4 bg-card"
+                style={{ borderColor: theme.border, ...theme.shadowSoft }}
+              >
+                <View className="flex-row items-center gap-3">
+                  <View className="h-10 w-10 items-center justify-center rounded-xl" style={{ backgroundColor: mode === "light" ? "#fff1ea" : "rgba(243, 111, 86, 0.08)" }}>
+                    <FileText color={theme.primary} size={18} />
+                  </View>
+                  <View>
+                    <Text className="text-sm font-bold text-dark" style={{ fontFamily: fontFamily.bold }}>Receipt History</Text>
+                    <Text className="text-[10px] text-muted mt-0.5" style={{ fontFamily: fontFamily.medium }}>Payment and loan receipts.</Text>
+                  </View>
+                </View>
+                <ChevronRight color={theme.primary} size={16} />
+              </TouchableOpacity>
+
+              <TouchableOpacity
+                activeOpacity={0.9}
+                onPress={() => navigation.navigate("SendEmail", { kind: "MONTHLY_REPORT" })}
+                className="flex-row items-center justify-between rounded-2xl border p-4 bg-card"
+                style={{ borderColor: theme.border, ...theme.shadowSoft }}
+              >
+                <View className="flex-row items-center gap-3">
+                  <View className="h-10 w-10 items-center justify-center rounded-xl bg-background-soft">
+                    <Mail color={theme.primary} size={18} />
+                  </View>
+                  <View>
+                    <Text className="text-sm font-bold text-dark" style={{ fontFamily: fontFamily.bold }}>Send Monthly Report</Text>
+                    <Text className="text-[10px] text-muted mt-0.5" style={{ fontFamily: fontFamily.medium }}>Email latest report summary.</Text>
+                  </View>
+                </View>
+                <ChevronRight color={theme.primary} size={16} />
+              </TouchableOpacity>
+
+              {[
+                { title: "Monthly Summary", subtitle: "Given, taken, received and paid.", icon: TrendingUp, route: "MonthlyReportDetail" as const },
+                { title: "Overdue Report", subtitle: "Overdue days and amount.", icon: AlertTriangle, route: "OverdueReport" as const },
+                { title: "Payment Methods", subtitle: "Cash, bank, JazzCash and more.", icon: CreditCard, route: "PaymentMethodsReport" as const },
+                { title: "Contact Performance", subtitle: "Best paying and risky contacts.", icon: Trophy, route: "ContactPerformanceReport" as const },
+                { title: "Salary vs Expense", subtitle: "How salary is used this cycle.", icon: TrendingUp, route: "SalaryVsExpenseReport" as const },
+                { title: "Loan Impact on Salary", subtitle: "Repayments, recovery and net loan cash flow.", icon: Scale, route: "LoanImpactOnSalaryReport" as const },
+                { title: "Budget Usage", subtitle: "Category budgets and over-budget signals.", icon: FileSpreadsheet, route: "BudgetUsageReport" as const },
+                { title: "Savings Progress", subtitle: "Targets, progress and active goals.", icon: Trophy, route: "SavingsProgressReport" as const },
+                { title: "Cash Flow Trend", subtitle: "Inflow, outflow and net movement.", icon: TrendingUp, route: "CashFlowTrendReport" as const },
+                { title: "Money Payment Methods", subtitle: "All cash-flow methods by inflow and outflow.", icon: CreditCard, route: "PaymentMethodBreakdownFinance" as const },
+              ].map((item) => {
+                const Icon = item.icon;
+                return (
+                  <TouchableOpacity
+                    key={item.route}
+                    activeOpacity={0.9}
+                    onPress={() => navigation.navigate(item.route)}
+                    className="flex-row items-center justify-between rounded-2xl border p-4 bg-card"
+                    style={{ borderColor: theme.border, ...theme.shadowSoft }}
+                  >
+                    <View className="flex-row items-center gap-3">
+                      <View className="h-10 w-10 items-center justify-center rounded-xl bg-background-soft">
+                        <Icon color={theme.primary} size={18} />
+                      </View>
+                      <View>
+                        <Text className="text-sm font-bold text-dark" style={{ fontFamily: fontFamily.bold }}>{item.title}</Text>
+                        <Text className="text-[10px] text-muted mt-0.5" style={{ fontFamily: fontFamily.medium }}>{item.subtitle}</Text>
+                      </View>
+                    </View>
+                    <ChevronRight color={theme.primary} size={16} />
+                  </TouchableOpacity>
+                );
+              })}
             </View>
 
             {/* --- Advanced Professional Charts --- */}

@@ -288,6 +288,28 @@ export const loanService = {
     };
   },
 
+  async getPinnedLoans(userId: string, limit = 10) {
+    await this.refreshOverdueLoans(userId);
+    return LoanModel.find({ userId, isPinned: true })
+      .populate("contactId", "name phone email")
+      .sort({ updatedAt: -1 })
+      .limit(limit);
+  },
+
+  async setPinned(userId: string, loanId: string, isPinned: boolean) {
+    const loan = await LoanModel.findOneAndUpdate(
+      { _id: loanId, userId },
+      { $set: { isPinned } },
+      { new: true, runValidators: true },
+    ).populate("contactId", "name phone email");
+
+    if (!loan) {
+      throw new ApiError(404, "Loan not found");
+    }
+
+    return loan;
+  },
+
   async updateLoan(
     userId: string,
     loanId: string,

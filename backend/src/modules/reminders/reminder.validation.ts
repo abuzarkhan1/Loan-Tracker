@@ -32,3 +32,32 @@ export const getNotificationLogsSchema = z.object({
     limit: z.coerce.number().int().positive().max(100).default(20),
   }),
 });
+
+export const updateLoanReminderSchema = z.object({
+  params: z.object({
+    loanId: z.string().regex(/^[0-9a-fA-F]{24}$/, "Invalid id"),
+  }),
+  body: z.object({
+    enabled: z.boolean().optional(),
+    remindBeforeDays: z.coerce.number().int().min(0).max(60).optional(),
+    repeatUntilPaid: z.boolean().optional(),
+    repeatFrequency: z.enum(["DAILY", "EVERY_2_DAYS", "WEEKLY"]).optional(),
+    tone: z.enum(["POLITE", "NORMAL", "STRICT"]).optional(),
+    customMessage: z.string().trim().max(500).optional().or(z.literal("")),
+  }),
+});
+
+export const loanReminderParamSchema = z.object({
+  params: z.object({
+    loanId: z.string().regex(/^[0-9a-fA-F]{24}$/, "Invalid id"),
+  }),
+});
+
+export const snoozeLoanReminderSchema = z.object({
+  params: z.object({
+    loanId: z.string().regex(/^[0-9a-fA-F]{24}$/, "Invalid id"),
+  }),
+  body: z.object({
+    snoozedUntil: z.coerce.date(),
+  }),
+});

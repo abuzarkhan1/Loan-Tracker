@@ -233,4 +233,131 @@ export const dashboardService = {
       },
     ]);
   },
+
+  async getInsights(userId: string) {
+    await loanService.refreshOverdueLoans(userId);
+
+    const now = new Date();
+    const monthStart = new Date(now.getFullYear(), now.getMonth(), 1);
+    const dueSoonEnd = new Date(now);
+    dueSoonEnd.setDate(now.getDate() + 7);
+    dueSoonEnd.setHours(23, 59, 59, 999);
+    const today = new Date(now);
+    today.setHours(0, 0, 0, 0);
+
+    const [summary, overdueLoans, dueSoonLoans, monthlyPayments, topPending, completedCount, loanCount] = await Promise.all([
+      this.getSummary(userId),
+      LoanModel.find({ userId, remainingAmount: { $gt: 0 }, status: LoanStatus.OVERDUE })
+        .populate("contactId", "name")
+        .sort({ dueDate: 1 })
+        .limit(3),
+      LoanModel.find({ userId, remainingAmount: { $gt: 0 }, dueDate: { $gte: today, $lte: dueSoonEnd } })
+        .populate("contactId", "name")
+        .sort({ dueDate: 1 })
+        .limit(3),
+      PaymentModel.aggregate([
+        { $match: { userId: toObjectId(userId), paymentDate: { $gte: monthStart } } },
+        { $group: { _id: "$type", total: { $sum: "$amount" } } },
+      ]),
+      this.getTopContacts(userId, 1),
+      LoanModel.countDocuments({ userId, status: LoanStatus.COMPLETED }),
+      LoanModel.countDocuments({ userId }),
+    ]);
+
+    const insights: Array<{
+      id: string;
+      type: "DUE_SOON" | "OVERDUE" | "MONTHLY_SUMMARY" | "NET_BALANCE" | "TOP_PENDING" | "RECOVERY_RATE" | "TRUST_ALERT";
+      title: string;
+      description: string;
+      severity: "INFO" | "SUCCESS" | "WARNING" | "DANGER";
+      actionLabel?: string;
+      actionRoute?: string;
+      metadata?: Record<string, unknown>;
+    }> = [];
+
+    dueSoonLoans.forEach((loan) => {
+      const contactName = loan.contactId && typeof loan.contactId === "object" && "name" in loan.contactId
+        ? String((loan.contactId as { name?: string }).name || "Contact")
+        : "Contact";
+      const days = loan.dueDate ? Math.max(0, Math.ceil((loan.dueDate.getTime() - today.getTime()) / 86_400_000)) : 0;
+      insights.push({
+        id: `due-soon-${loan._id.toString()}`,
+        type: "DUE_SOON",
+        title: `${contactName} ka loan ${days} din baad due hai.`,
+        description: `Baqi raqam Rs ${loan.remainingAmount.toLocaleString("en-PK")} hai.`,
+        severity: "WARNING",
+        actionLabel: "Open loan",
+        actionRoute: "LoanDetail",
+        metadata: { loanId: loan._id.toString(), contactId: loan.contactId?.toString(), dueDate: loan.dueDate },
+      });
+    });
+
+    if (overdueLoans.length) {
+      const total = overdueLoans.reduce((sum, loan) => sum + loan.remainingAmount, 0);
+      insights.push({
+        id: "overdue-summary",
+        type: "OVERDUE",
+        title: `${overdueLoans.length} loans overdue hain.`,
+        description: `Overdue amount Rs ${total.toLocaleString("en-PK")} hai. Reminder bhejna useful ho sakta hai.`,
+        severity: "DANGER",
+        actionLabel: "View overdue",
+        actionRoute: "OverdueReport",
+        metadata: { count: overdueLoans.length, amount: total },
+      });
+    }
+
+    const receivedThisMonth = monthlyPayments
+      .filter((payment) => payment._id === PaymentType.RECEIVED)
+      .reduce((sum, payment) => sum + payment.total, 0);
+    const paidThisMonth = monthlyPayments
+      .filter((payment) => payment._id === PaymentType.PAID)
+      .reduce((sum, payment) => sum + payment.total, 0);
+
+    insights.push({
+      id: "monthly-summary",
+      type: "MONTHLY_SUMMARY",
+      title: `Is month Rs ${receivedThisMonth.toLocaleString("en-PK")} wapis mila.`,
+      description: `Aur Rs ${paidThisMonth.toLocaleString("en-PK")} wapis diya gaya.`,
+      severity: receivedThisMonth >= paidThisMonth ? "SUCCESS" : "INFO",
+      actionLabel: "Monthly report",
+      actionRoute: "MonthlyReportDetail",
+      metadata: { receivedThisMonth, paidThisMonth, month: now.getMonth() + 1, year: now.getFullYear() },
+    });
+
+    insights.push({
+      id: "net-balance",
+      type: "NET_BALANCE",
+      title: summary.overallBalance >= 0 ? "Aapka net balance positive hai." : "Aapka net balance payable side par hai.",
+      description: `Overall balance Rs ${summary.overallBalance.toLocaleString("en-PK")} hai.`,
+      severity: summary.overallBalance >= 0 ? "SUCCESS" : "WARNING",
+      metadata: { overallBalance: summary.overallBalance },
+    });
+
+    if (topPending[0]) {
+      insights.push({
+        id: `top-pending-${topPending[0].contactId}`,
+        type: "TOP_PENDING",
+        title: `${topPending[0].contactName} ke paas sabse zyada pending amount hai.`,
+        description: `Pending Rs ${topPending[0].remainingAmount.toLocaleString("en-PK")} hai.`,
+        severity: "INFO",
+        actionLabel: "Open profile",
+        actionRoute: "ContactLoanProfile",
+        metadata: { contactId: topPending[0].contactId, remainingAmount: topPending[0].remainingAmount },
+      });
+    }
+
+    const recoveryRate = loanCount > 0 ? Math.round((completedCount / loanCount) * 100) : 0;
+    insights.push({
+      id: "recovery-rate",
+      type: "RECOVERY_RATE",
+      title: `Aapki recovery rate ${recoveryRate}% hai.`,
+      description: `${completedCount} of ${loanCount} loans completed hain.`,
+      severity: recoveryRate >= 70 ? "SUCCESS" : recoveryRate >= 40 ? "INFO" : "WARNING",
+      actionLabel: "Reports",
+      actionRoute: "Reports",
+      metadata: { recoveryRate, completedCount, loanCount },
+    });
+
+    return insights.slice(0, 8);
+  },
 };
