@@ -3,6 +3,7 @@ import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { Image, Text, TouchableOpacity, View } from "react-native";
 import { BellRing, CalendarClock, CheckCircle2, Edit3, HandCoins, History, Image as ImageIcon, Link2, Mail, Percent, Pin, Plus, ReceiptText, Share2, Trash2 } from "lucide-react-native";
 import { api, getAssetUrl } from "../../api/client";
+import { AmountText } from "../../components/AmountText";
 import { AppButton } from "../../components/AppButton";
 import { ProgressBar } from "../../components/ProgressBar";
 import { Screen } from "../../components/Screen";
@@ -184,7 +185,7 @@ export const LoanDetailScreen = ({ navigation, route }: Props) => {
         <View className="mt-5 gap-2">
           <View className="flex-row justify-between">
             <Text className="text-xs font-bold text-muted">Paid {progress}%</Text>
-            <Text className="text-xs font-bold text-muted">Baqi Raqam {formatCurrency(loan.remainingAmount)}</Text>
+            <AmountText amount={loan.remainingAmount} prefix="Baqi Raqam " hiddenLabel="Baqi Raqam Rs. ****" className="text-xs font-bold text-muted" />
           </View>
           <ProgressBar progress={progress} />
         </View>
@@ -192,11 +193,11 @@ export const LoanDetailScreen = ({ navigation, route }: Props) => {
         <View className="mt-5 flex-row justify-between">
           <View>
             <Text className="text-xs font-bold uppercase text-muted">Total</Text>
-            <Text className="mt-1 text-lg font-black text-dark">{formatCurrency(loan.amount)}</Text>
+            <AmountText amount={loan.amount} className="mt-1 text-lg font-black text-dark" />
           </View>
           <View>
             <Text className="text-xs font-bold uppercase text-muted">Paid</Text>
-            <Text className="mt-1 text-lg font-black text-success">{formatCurrency(loan.paidAmount)}</Text>
+            <AmountText amount={loan.paidAmount} className="mt-1 text-lg font-black text-success" />
           </View>
         </View>
 
@@ -327,7 +328,8 @@ export const LoanDetailScreen = ({ navigation, route }: Props) => {
             <View className="flex-1">
               <Text className="text-base font-bold text-dark">Interest Enabled</Text>
               <Text className="mt-1 text-sm font-medium text-muted">
-                Interest {formatCurrency(loan.interestAmount)} · Total {formatCurrency(loan.totalPayableAmount)}
+                Interest <AmountText amount={loan.interestAmount} className="text-sm font-medium text-muted" /> · Total{" "}
+                <AmountText amount={loan.totalPayableAmount} className="text-sm font-medium text-muted" />
               </Text>
             </View>
           </View>
@@ -361,7 +363,7 @@ export const LoanDetailScreen = ({ navigation, route }: Props) => {
           {promises.slice(0, 2).map((promise) => (
             <View key={promise._id} className="rounded-lg border border-border bg-background-soft p-3">
               <View className="flex-row items-center justify-between gap-3">
-                <Text className="text-sm font-black text-dark">{formatCurrency(promise.promisedAmount)}</Text>
+                <AmountText amount={promise.promisedAmount} className="text-sm font-black text-dark" />
                 <StatusBadge value={promise.status} />
               </View>
               <Text className="mt-1 text-xs font-semibold text-muted">Promise date {formatDate(promise.promiseDate)}</Text>
@@ -409,7 +411,8 @@ export const LoanDetailScreen = ({ navigation, route }: Props) => {
               <View className="flex-row items-start justify-between gap-3">
                 <View className="flex-1">
                   <Text style={{ color: theme.text, fontFamily: fontFamily.extraBold, fontSize: 16 }}>
-                    {paymentVerb}: {formatCurrency(payment.amount)}
+                    {paymentVerb}:{" "}
+                    <AmountText amount={payment.amount} style={{ color: theme.text, fontFamily: fontFamily.extraBold, fontSize: 16 }} />
                   </Text>
                   <Text style={{ color: theme.muted, fontFamily: fontFamily.bold, fontSize: 12, marginTop: 4 }}>
                     {payment.method} · {formatDate(payment.paymentDate)} · {formatTime(payment.createdAt)}
@@ -425,7 +428,11 @@ export const LoanDetailScreen = ({ navigation, route }: Props) => {
                     }}
                   >
                     <Text style={{ color: theme.primaryDark, fontFamily: fontFamily.extraBold, fontSize: 11 }}>
-                      Baqi: {formatCurrency(runningBalances[payment._id] ?? loan.remainingAmount)}
+                      Baqi:{" "}
+                      <AmountText
+                        amount={runningBalances[payment._id] ?? loan.remainingAmount}
+                        style={{ color: theme.primaryDark, fontFamily: fontFamily.extraBold, fontSize: 11 }}
+                      />
                     </Text>
                   </View>
                   {payment.note ? <Text className="mt-2 text-sm text-dark">{payment.note}</Text> : null}

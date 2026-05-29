@@ -48,8 +48,7 @@ export const GeneratePdfScreen = ({ navigation }: Props) => {
 
   return (
     <Screen className="pt-5">
-      <ScrollView showsVerticalScrollIndicator={false} contentContainerStyle={{ paddingBottom: 40 }}>
-        {/* --- Header Section --- */}
+      {/* --- Header Section --- */}
         <View>
           <Text className="text-2xl font-black text-dark" style={{ fontFamily: fontFamily.extraBold }}>Generate PDF</Text>
           <Text className="mt-1 text-xs font-medium text-muted" style={{ fontFamily: fontFamily.medium }}>Select a document type to compile accounts ledgers in background.</Text>
@@ -308,7 +307,6 @@ export const GeneratePdfScreen = ({ navigation }: Props) => {
             </Text>
           </View>
         ) : null}
-      </ScrollView>
     </Screen>
   );
 };

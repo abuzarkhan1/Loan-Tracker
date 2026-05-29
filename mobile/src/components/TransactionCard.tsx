@@ -3,8 +3,9 @@ import { Text, TouchableOpacity, View } from "react-native";
 import { Transaction } from "../api/types";
 import { useAppTheme } from "../providers/ThemeProvider";
 import { categoryName, contactName, transactionTypeLabels, transactionTypeTone } from "../utils/finance";
-import { formatCurrency, formatDate } from "../utils/format";
+import { formatDate } from "../utils/format";
 import { fontFamily } from "../utils/theme";
+import { AmountText } from "./AmountText";
 
 type TransactionCardProps = {
   transaction: Transaction;
@@ -50,12 +51,13 @@ export const TransactionCard = ({ transaction, onPress }: TransactionCardProps) 
           {transaction.note ? <Text numberOfLines={1} className="mt-1 text-xs font-semibold text-muted">{transaction.note}</Text> : null}
         </View>
         <View className="items-end">
-          <Text
+          <AmountText
+            amount={transaction.amount}
+            prefix={positive ? "+" : "-"}
             className="text-sm font-black"
             style={{ color: positive ? theme.success : theme.danger, fontFamily: fontFamily.extraBold }}
-          >
-            {positive ? "+" : "-"}{formatCurrency(transaction.amount)}
-          </Text>
+            hiddenLabel={`${positive ? "+" : "-"}Rs. ****`}
+          />
           <ReceiptText color={theme.muted} size={16} />
         </View>
       </View>

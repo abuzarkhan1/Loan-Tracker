@@ -2,12 +2,18 @@ import axios from "axios";
 import {
   ApiResponse,
   AuthPayload,
+  AffordabilityResult,
+  Bill,
+  BillOccurrence,
   Backup,
   Budget,
+  BudgetRecommendation,
   BulkDeviceContactImportResult,
   CashFlowTrendPoint,
   Category,
   CategoryBreakdown,
+  CalendarEvent,
+  AssistantResponse,
   Contact,
   ContactDetail,
   ContactLedger,
@@ -25,6 +31,7 @@ import {
   FinanceDashboard,
   FinanceInsight,
   FinancePaymentMethodBreakdown,
+  Forecast,
   FollowUp,
   Installment,
   InterestPreview,
@@ -39,6 +46,7 @@ import {
   MonthlyChartPoint,
   OverdueReport,
   PaginatedContacts,
+  PaginatedSmartEntries,
   PaginatedActivity,
   PaginatedBackups,
   PaginatedEmailLogs,
@@ -53,6 +61,12 @@ import {
   PaginatedSalaryAllocations,
   PaginatedSalaryEntries,
   PaginatedSavingsGoalProgress,
+  PaginatedBills,
+  PaginatedBillOccurrences,
+  PaginatedRecurringTransactions,
+  PaginatedRecurringOccurrences,
+  PaginatedSmartAlerts,
+  PaginatedTransactionTemplates,
   PaginatedSettlements,
   PaginatedTransactions,
   Payment,
@@ -60,6 +74,7 @@ import {
   PaymentMethod,
   PaymentMutationResponse,
   PaymentProof,
+  RecurringTransaction,
   Receipt,
   ReminderSettings,
   ReminderTemplate,
@@ -75,10 +90,22 @@ import {
   SalaryProfile,
   SalaryVsExpenseReport,
   SavingsGoal,
+  SmartAlert,
+  SmartEntryParseResult,
+  CategorizationSuggestion,
+  MoneyHealthScore,
+  CycleReview,
+  WhatChangedInsight,
+  ScenarioResult,
+  DataQualityIssue,
+  PrivacySettings,
+  GoalAutoPlan,
+  SpendingHabitInsight,
   Settlement,
   TrustProfile,
   TopContact,
   Transaction,
+  TransactionTemplate,
   TransactionType,
   User,
 } from "./types";
@@ -217,6 +244,37 @@ export const api = {
   getTopContacts: (limit = 5) =>
     unwrap<TopContact[]>(apiClient.get("/dashboard/top-contacts", { params: { limit } })),
   getDashboardInsights: () => unwrap<DashboardInsight[]>(apiClient.get("/dashboard/insights")),
+
+  parseSmartEntry: (payload: { inputType: "TEXT" | "VOICE"; text: string; language?: "ROMAN_URDU" | "ENGLISH" | "MIXED"; saveTranscript?: boolean }) =>
+    unwrap<SmartEntryParseResult>(apiClient.post("/smart-entry/parse", payload)),
+  confirmSmartEntry: (payload: { parseId: string; parsedData?: Record<string, unknown> }) =>
+    unwrap<{ smartEntry: unknown; createdEntityType: string; createdEntity: unknown }>(apiClient.post("/smart-entry/confirm", payload)),
+  getSmartEntryHistory: (params?: { page?: number; limit?: number }) =>
+    unwrap<PaginatedSmartEntries>(apiClient.get("/smart-entry/history", { params })),
+  cancelSmartEntry: (id: string) => unwrap(apiClient.patch(`/smart-entry/${id}/cancel`)),
+  deleteSmartEntry: (id: string) => unwrap<{ id: string }>(apiClient.delete(`/smart-entry/${id}`)),
+  clearSmartEntryHistory: () => unwrap<{ deletedCount: number }>(apiClient.delete("/smart-entry/history")),
+
+  suggestCategorization: (payload: { text?: string; amount?: number; type: "INCOME" | "EXPENSE" }) =>
+    unwrap<CategorizationSuggestion>(apiClient.post("/categorization/suggest", payload)),
+  saveCategorizationFeedback: (payload: { text: string; type: "INCOME" | "EXPENSE"; categoryId: string; paymentMethod?: PaymentMethod }) =>
+    unwrap(apiClient.post("/categorization/feedback", payload)),
+
+  getMoneyHealthScore: () => unwrap<MoneyHealthScore>(apiClient.get("/health-score/money")),
+  getCurrentReview: () => unwrap<CycleReview>(apiClient.get("/reviews/current-cycle")),
+  getReviews: () => unwrap<CycleReview[]>(apiClient.get("/reviews")),
+  getReview: (id: string) => unwrap<CycleReview>(apiClient.get(`/reviews/${id}`)),
+  generateReview: () => unwrap<CycleReview>(apiClient.post("/reviews/generate")),
+  getWhatChanged: () => unwrap<WhatChangedInsight[]>(apiClient.get("/insights/what-changed")),
+  simulateScenario: (payload: { type: ScenarioResult["type"]; amount: number; note?: string; save?: boolean }) =>
+    unwrap<ScenarioResult>(apiClient.post("/scenarios/simulate", payload)),
+  getScenarioHistory: () => unwrap<Array<{ _id: string; type: string; inputData: Record<string, unknown>; resultData: ScenarioResult; createdAt: string }>>(apiClient.get("/scenarios/history")),
+  deleteScenario: (id: string) => unwrap<{ id: string }>(apiClient.delete(`/scenarios/${id}`)),
+  getDataQualityIssues: () => unwrap<{ totalIssues: number; resolvedCount: number; score: number; issues: DataQualityIssue[] }>(apiClient.get("/data-quality/issues")),
+  resolveDataQualityIssue: (id: string) => unwrap<{ id: string; status: string; message: string }>(apiClient.patch(`/data-quality/issues/${id}/resolve`)),
+  getPrivacySettings: () => unwrap<PrivacySettings>(apiClient.get("/settings/privacy")),
+  updatePrivacySettings: (payload: Partial<PrivacySettings>) => unwrap<PrivacySettings>(apiClient.patch("/settings/privacy", payload)),
+  askAssistant: (question: string) => unwrap<AssistantResponse>(apiClient.post("/assistant/ask", { question })),
 
   getRecoveryCenter: () => unwrap<RecoveryCenter>(apiClient.get("/recovery/center")),
 
@@ -390,6 +448,8 @@ export const api = {
   createBudget: (payload: Partial<Budget>) => unwrap<Budget>(apiClient.post("/budgets", payload)),
   getCurrentBudget: (params?: { date?: string }) => unwrap<Budget | null>(apiClient.get("/budgets/current", { params })),
   getBudgets: (params?: { month?: number; year?: number; date?: string }) => unwrap<Budget[]>(apiClient.get("/budgets", { params })),
+  getBudgetRecommendations: () => unwrap<BudgetRecommendation>(apiClient.get("/budgets/recommendations")),
+  applyBudgetRecommendations: (payload?: { categoryIds?: string[] }) => unwrap<Budget>(apiClient.post("/budgets/recommendations/apply", payload || {})),
   updateBudget: (id: string, payload: Partial<Budget>) => unwrap<Budget>(apiClient.patch(`/budgets/${id}`, payload)),
   deleteBudget: (id: string) => unwrap<{ id: string }>(apiClient.delete(`/budgets/${id}`)),
 
@@ -402,6 +462,13 @@ export const api = {
     unwrap<PaginatedSavingsGoalProgress>(apiClient.get(`/savings-goals/${id}/progress`, { params })),
   addSavingsProgress: (id: string, payload: { amount: number; date?: string; note?: string }) =>
     unwrap<SavingsGoal>(apiClient.post(`/savings-goals/${id}/add-progress`, payload)),
+  getGoalsPlanner: () => unwrap<Array<{ goal: SavingsGoal; plan: import("./types").GoalPlan }>>(apiClient.get("/goals/planner")),
+  calculateGoalPlan: (id: string) => unwrap<{ goal: SavingsGoal; plan: import("./types").GoalPlan }>(apiClient.post(`/goals/${id}/calculate-plan`)),
+  getGoalAutoPlan: (id: string) => unwrap<GoalAutoPlan>(apiClient.get(`/goals/${id}/plan`)),
+  generateGoalAutoPlan: (id: string) => unwrap<GoalAutoPlan>(apiClient.post(`/goals/${id}/auto-plan`)),
+  applyGoalAutoPlan: (id: string) => unwrap<{ goal: SavingsGoal; plan: GoalAutoPlan }>(apiClient.post(`/goals/${id}/apply-auto-plan`)),
+  pauseGoal: (id: string) => unwrap<SavingsGoal>(apiClient.patch(`/goals/${id}/pause`)),
+  resumeGoal: (id: string) => unwrap<SavingsGoal>(apiClient.patch(`/goals/${id}/resume`)),
 
   getFinanceDashboard: (params?: { date?: string; dateFrom?: string; dateTo?: string; month?: number; year?: number }) =>
     unwrap<FinanceDashboard>(apiClient.get("/finance/dashboard", { params })),
@@ -418,6 +485,61 @@ export const api = {
   getBudgetUsageReport: () => unwrap<Budget | null>(apiClient.get("/reports/budget-usage")),
   getSavingsProgressReport: () => unwrap<SavingsGoal[]>(apiClient.get("/reports/savings-progress")),
   getCashFlowTrendReport: () => unwrap<CashFlowTrendPoint[]>(apiClient.get("/reports/cash-flow-trend")),
+
+  getBills: (params?: { status?: string; frequency?: string; search?: string; page?: number; limit?: number }) =>
+    unwrap<PaginatedBills>(apiClient.get("/bills", { params })),
+  getBill: (id: string) => unwrap<{ bill: Bill; occurrences: BillOccurrence[] }>(apiClient.get(`/bills/${id}`)),
+  createBill: (payload: Partial<Bill>) => unwrap<Bill>(apiClient.post("/bills", payload)),
+  updateBill: (id: string, payload: Partial<Bill>) => unwrap<Bill>(apiClient.patch(`/bills/${id}`, payload)),
+  deleteBill: (id: string) => unwrap<{ id: string }>(apiClient.delete(`/bills/${id}`)),
+  pauseBill: (id: string) => unwrap<Bill>(apiClient.patch(`/bills/${id}/pause`)),
+  resumeBill: (id: string) => unwrap<Bill>(apiClient.patch(`/bills/${id}/resume`)),
+  getBillOccurrences: (id: string, params?: { status?: string; page?: number; limit?: number }) =>
+    unwrap<PaginatedBillOccurrences>(apiClient.get(`/bills/${id}/occurrences`, { params })),
+  markBillPaid: (occurrenceId: string, payload?: { amount?: number; paidDate?: string; paymentMethod?: PaymentMethod; note?: string }) =>
+    unwrap<{ occurrence: BillOccurrence; transaction?: Transaction | null }>(apiClient.patch(`/bill-occurrences/${occurrenceId}/mark-paid`, payload || {})),
+  skipBillOccurrence: (occurrenceId: string) => unwrap<BillOccurrence>(apiClient.patch(`/bill-occurrences/${occurrenceId}/skip`)),
+  getUpcomingBills: () => unwrap<BillOccurrence[]>(apiClient.get("/bills/upcoming")),
+  getOverdueBills: () => unwrap<BillOccurrence[]>(apiClient.get("/bills/overdue")),
+
+  getRecurringTransactions: (params?: { type?: string; status?: string; search?: string; page?: number; limit?: number }) =>
+    unwrap<PaginatedRecurringTransactions>(apiClient.get("/recurring-transactions", { params })),
+  getRecurringTransaction: (id: string) => unwrap<{ recurringTransaction: RecurringTransaction; occurrences: import("./types").RecurringOccurrence[] }>(apiClient.get(`/recurring-transactions/${id}`)),
+  createRecurringTransaction: (payload: Partial<RecurringTransaction>) => unwrap<RecurringTransaction>(apiClient.post("/recurring-transactions", payload)),
+  updateRecurringTransaction: (id: string, payload: Partial<RecurringTransaction>) => unwrap<RecurringTransaction>(apiClient.patch(`/recurring-transactions/${id}`, payload)),
+  deleteRecurringTransaction: (id: string) => unwrap<{ id: string }>(apiClient.delete(`/recurring-transactions/${id}`)),
+  pauseRecurringTransaction: (id: string) => unwrap<RecurringTransaction>(apiClient.patch(`/recurring-transactions/${id}/pause`)),
+  resumeRecurringTransaction: (id: string) => unwrap<RecurringTransaction>(apiClient.patch(`/recurring-transactions/${id}/resume`)),
+  getRecurringOccurrences: (id: string, params?: { status?: string; page?: number; limit?: number }) =>
+    unwrap<PaginatedRecurringOccurrences>(apiClient.get(`/recurring-transactions/${id}/occurrences`, { params })),
+  markRecurringCompleted: (occurrenceId: string, payload?: { amount?: number; completedDate?: string; paymentMethod?: PaymentMethod; note?: string }) =>
+    unwrap<{ occurrence: import("./types").RecurringOccurrence; transaction: Transaction }>(apiClient.patch(`/recurring-occurrences/${occurrenceId}/mark-completed`, payload || {})),
+  skipRecurringOccurrence: (occurrenceId: string) => unwrap<import("./types").RecurringOccurrence>(apiClient.patch(`/recurring-occurrences/${occurrenceId}/skip`)),
+  getUpcomingRecurringTransactions: () => unwrap<import("./types").RecurringOccurrence[]>(apiClient.get("/recurring-transactions/upcoming")),
+
+  getCalendarEvents: (params?: { startDate?: string; endDate?: string }) => unwrap<CalendarEvent[]>(apiClient.get("/calendar/events", { params })),
+  getCalendarDay: (date: string) => unwrap<{ date: string; events: CalendarEvent[]; inflow: number; outflow: number; net: number }>(apiClient.get("/calendar/day", { params: { date } })),
+  getCalendarMonthSummary: (params?: { month?: number; year?: number }) =>
+    unwrap<{ expectedInflow: number; expectedOutflow: number; netProjection: number; importantEvents: CalendarEvent[] }>(apiClient.get("/calendar/month-summary", { params })),
+  getCurrentCycleForecast: () => unwrap<Forecast>(apiClient.get("/forecast/current-cycle")),
+  getMonthEndForecast: () => unwrap<Forecast>(apiClient.get("/forecast/month-end")),
+  getCustomForecast: (params: { startDate?: string; endDate?: string }) => unwrap<Forecast>(apiClient.get("/forecast/custom", { params })),
+  getAlerts: (params?: { status?: string; type?: string; page?: number; limit?: number }) => unwrap<PaginatedSmartAlerts>(apiClient.get("/alerts", { params })),
+  getActiveAlerts: () => unwrap<SmartAlert[]>(apiClient.get("/alerts/active")),
+  getAlert: (id: string) => unwrap<SmartAlert>(apiClient.get(`/alerts/${id}`)),
+  dismissAlert: (id: string) => unwrap<SmartAlert>(apiClient.patch(`/alerts/${id}/dismiss`)),
+  resolveAlert: (id: string) => unwrap<SmartAlert>(apiClient.patch(`/alerts/${id}/resolve`)),
+  checkAffordability: (payload: { amount: number; categoryId?: string; plannedDate: string; note?: string }) =>
+    unwrap<AffordabilityResult>(apiClient.post("/affordability/check", payload)),
+  getTransactionTemplates: (params?: { type?: string; isFavorite?: boolean; search?: string; page?: number; limit?: number }) =>
+    unwrap<PaginatedTransactionTemplates>(apiClient.get("/transaction-templates", { params })),
+  createTransactionTemplate: (payload: Partial<TransactionTemplate>) => unwrap<TransactionTemplate>(apiClient.post("/transaction-templates", payload)),
+  updateTransactionTemplate: (id: string, payload: Partial<TransactionTemplate>) => unwrap<TransactionTemplate>(apiClient.patch(`/transaction-templates/${id}`, payload)),
+  deleteTransactionTemplate: (id: string) => unwrap<{ id: string }>(apiClient.delete(`/transaction-templates/${id}`)),
+  useTransactionTemplate: (id: string) => unwrap<{ template: TransactionTemplate; transaction: Transaction }>(apiClient.post(`/transaction-templates/${id}/use`)),
+  getSpendingHabits: (params?: { date?: string }) => unwrap<{ cycle: { cycleStartDate: string; cycleEndDate: string }; insights: SpendingHabitInsight[] }>(apiClient.get("/insights/spending-habits", { params })),
+  getCategoryTrend: (categoryId: string, params?: { date?: string }) =>
+    unwrap<{ category: Category; currentAmount: number; previousAmount: number; changePercent: number; transactions: Transaction[] }>(apiClient.get(`/insights/spending-habits/category/${categoryId}`, { params })),
 
   createBackup: () => unwrap<Backup>(apiClient.post("/backups/create")),
   getBackups: (params?: { page?: number; limit?: number }) =>

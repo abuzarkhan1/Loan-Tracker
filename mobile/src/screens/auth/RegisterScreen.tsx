@@ -39,7 +39,7 @@ export const RegisterScreen = ({ navigation }: Props) => {
   });
 
   return (
-    <Screen className="justify-center pt-16">
+    <Screen className="justify-center pt-16" refreshable={false}>
       <View className="mb-10 items-center gap-4">
         <BrandLogo size={72} />
         <View className="items-center">

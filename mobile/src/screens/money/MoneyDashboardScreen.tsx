@@ -5,14 +5,19 @@ import {
   ArrowDownLeft,
   ArrowUpRight,
   Banknote,
+  BellRing,
+  CalendarDays,
   ChartNoAxesCombined,
+  Calculator,
   PiggyBank,
   Plus,
   ReceiptText,
+  Repeat2,
   WalletCards,
 } from "lucide-react-native";
 import { Text, TouchableOpacity, View } from "react-native";
 import { api } from "../../api/client";
+import { AmountText } from "../../components/AmountText";
 import { MoneySummaryCard } from "../../components/MoneySummaryCard";
 import { Screen } from "../../components/Screen";
 import { EmptyState, ErrorState, LoadingState } from "../../components/StateViews";
@@ -55,6 +60,9 @@ export const MoneyDashboardScreen = () => {
   const navigation = useNavigation<Navigation>();
   const dashboardQuery = useQuery({ queryKey: ["finance", "dashboard"], queryFn: () => api.getFinanceDashboard() });
   const insightsQuery = useQuery({ queryKey: ["finance", "insights"], queryFn: () => api.getFinanceInsights() });
+  const forecastQuery = useQuery({ queryKey: ["forecast", "current-cycle"], queryFn: () => api.getCurrentCycleForecast() });
+  const alertsQuery = useQuery({ queryKey: ["alerts", "active"], queryFn: () => api.getActiveAlerts() });
+  const billsQuery = useQuery({ queryKey: ["bills", "upcoming"], queryFn: () => api.getUpcomingBills() });
 
   if (dashboardQuery.isLoading) {
     return (
@@ -106,17 +114,15 @@ export const MoneyDashboardScreen = () => {
       >
         <View className="absolute -right-20 -top-20 h-44 w-44 rounded-full opacity-10" style={{ backgroundColor: theme.primary }} />
         <Text className="text-[10px] font-black uppercase text-white/70">Available Cash</Text>
-        <Text className="mt-2 text-3xl font-black text-white" style={{ fontFamily: fontFamily.extraBold }}>
-          {formatCurrency(data.availableCash)}
-        </Text>
+        <AmountText amount={data.availableCash} className="mt-2 text-3xl font-black text-white" style={{ fontFamily: fontFamily.extraBold }} />
         <View className="mt-5 flex-row gap-3 border-t border-white/10 pt-4">
           <View className="flex-1">
             <Text className="text-[10px] font-black uppercase text-white/55">Inflows</Text>
-            <Text className="mt-1 text-sm font-black text-white">{formatCurrency(data.totalInflows)}</Text>
+            <AmountText amount={data.totalInflows} className="mt-1 text-sm font-black text-white" />
           </View>
           <View className="flex-1 border-l border-white/10 pl-3">
             <Text className="text-[10px] font-black uppercase text-white/55">Outflows</Text>
-            <Text className="mt-1 text-sm font-black text-white">{formatCurrency(data.totalOutflows)}</Text>
+            <AmountText amount={data.totalOutflows} className="mt-1 text-sm font-black text-white" />
           </View>
         </View>
       </View>
@@ -139,6 +145,60 @@ export const MoneyDashboardScreen = () => {
           <QuickAction label="Add Expense" icon={ArrowUpRight} onPress={() => navigation.navigate("AddExpense")} />
           <QuickAction label="Add Income" icon={ArrowDownLeft} onPress={() => navigation.navigate("AddIncome")} />
           <QuickAction label="Salary" icon={Banknote} onPress={() => navigation.navigate("SalaryDashboard")} />
+        </View>
+        <View className="mt-3 flex-row gap-3">
+          <QuickAction label="Bills" icon={ReceiptText} onPress={() => navigation.navigate("Bills")} />
+          <QuickAction label="Calendar" icon={CalendarDays} onPress={() => navigation.navigate("FinanceCalendar")} />
+          <QuickAction label="Afford?" icon={Calculator} onPress={() => navigation.navigate("AffordabilityCalculator")} />
+        </View>
+        <View className="mt-3 flex-row gap-3">
+          <QuickAction label="Recurring" icon={Repeat2} onPress={() => navigation.navigate("RecurringTransactions")} />
+          <QuickAction label="Templates" icon={Plus} onPress={() => navigation.navigate("TransactionTemplates")} />
+          <QuickAction label="Goals" icon={PiggyBank} onPress={() => navigation.navigate("FinancialGoals")} />
+        </View>
+        <View className="mt-3 flex-row gap-3">
+          <QuickAction label="Smart Entry" icon={Plus} onPress={() => navigation.navigate("SmartTextEntry")} />
+          <QuickAction label="Scenario" icon={Calculator} onPress={() => navigation.navigate("ScenarioPlanner")} />
+          <QuickAction label="Assistant" icon={ChartNoAxesCombined} onPress={() => navigation.navigate("FinanceAssistant")} />
+        </View>
+        <View className="mt-3 flex-row gap-3">
+          <QuickAction label="Health" icon={WalletCards} onPress={() => navigation.navigate("MoneyHealthScore")} />
+          <QuickAction label="Review" icon={ChartNoAxesCombined} onPress={() => navigation.navigate("MonthlyReview")} />
+          <QuickAction label="Changed" icon={Repeat2} onPress={() => navigation.navigate("WhatChanged")} />
+        </View>
+      </View>
+
+      <View className="rounded-3xl border border-border bg-card p-5" style={theme.shadowSoft}>
+        <View className="flex-row items-center justify-between">
+          <Text className="text-base font-black text-dark">Planning Snapshot</Text>
+          <TouchableOpacity onPress={() => navigation.navigate("CashForecast")}>
+            <Text className="text-xs font-black text-primary">Forecast</Text>
+          </TouchableOpacity>
+        </View>
+        <View className="mt-4 gap-3">
+          <TouchableOpacity activeOpacity={0.86} onPress={() => navigation.navigate("CashForecast")} className="rounded-2xl bg-background-soft p-4">
+            <Text className="text-sm font-black text-dark">Projected Cash</Text>
+            {forecastQuery.data ? (
+              <AmountText
+                value={`${formatCurrency(forecastQuery.data.projectedCash)} • ${forecastQuery.data.confidenceLevel}`}
+                hiddenLabel={`Rs. **** • ${forecastQuery.data.confidenceLevel}`}
+                className="mt-1 text-xs font-semibold text-muted"
+              />
+            ) : (
+              <Text className="mt-1 text-xs font-semibold text-muted">Forecast ready ho raha hai</Text>
+            )}
+          </TouchableOpacity>
+          <TouchableOpacity activeOpacity={0.86} onPress={() => navigation.navigate("AlertsCenter")} className="rounded-2xl bg-background-soft p-4">
+            <View className="flex-row items-center gap-2">
+              <BellRing color={theme.primary} size={16} />
+              <Text className="text-sm font-black text-dark">Smart Alerts</Text>
+            </View>
+            <Text className="mt-1 text-xs font-semibold text-muted">{alertsQuery.data?.length || 0} active alerts</Text>
+          </TouchableOpacity>
+          <TouchableOpacity activeOpacity={0.86} onPress={() => navigation.navigate("Bills")} className="rounded-2xl bg-background-soft p-4">
+            <Text className="text-sm font-black text-dark">Upcoming Bills</Text>
+            <Text className="mt-1 text-xs font-semibold text-muted">{billsQuery.data?.length || 0} bills in view</Text>
+          </TouchableOpacity>
         </View>
       </View>
 
@@ -173,7 +233,11 @@ export const MoneyDashboardScreen = () => {
         </View>
         <Text className="mt-3 text-2xl font-black text-dark">{data.topExpenseCategory?.name || "No expense yet"}</Text>
         <Text className="mt-1 text-sm font-semibold text-muted">
-          {data.topExpenseCategory ? `${formatCurrency(data.topExpenseCategory.amount)} this cycle` : "Expenses track karte hi yahan biggest category show ho gi."}
+          {data.topExpenseCategory ? (
+            <>
+              <AmountText amount={data.topExpenseCategory.amount} className="text-sm font-semibold text-muted" /> this cycle
+            </>
+          ) : "Expenses track karte hi yahan biggest category show ho gi."}
         </Text>
       </View>
     </Screen>

@@ -47,9 +47,47 @@ import { SalaryAllocationScreen } from "../screens/salary/SalaryAllocationScreen
 import { AddEditAllocationScreen } from "../screens/salary/AddEditAllocationScreen";
 import { BudgetScreen } from "../screens/budget/BudgetScreen";
 import { AddEditBudgetScreen } from "../screens/budget/AddEditBudgetScreen";
+import { BudgetRecommendationsScreen } from "../screens/budget/BudgetRecommendationsScreen";
 import { SavingsGoalsScreen } from "../screens/savings/SavingsGoalsScreen";
 import { AddEditSavingsGoalScreen } from "../screens/savings/AddEditSavingsGoalScreen";
 import { AddSavingsProgressScreen } from "../screens/savings/AddSavingsProgressScreen";
+import { BillsScreen } from "../screens/bills/BillsScreen";
+import { AddEditBillScreen } from "../screens/bills/AddEditBillScreen";
+import { BillDetailScreen } from "../screens/bills/BillDetailScreen";
+import { MarkBillPaidScreen } from "../screens/bills/MarkBillPaidScreen";
+import { RecurringTransactionsScreen } from "../screens/recurring/RecurringTransactionsScreen";
+import { AddEditRecurringTransactionScreen } from "../screens/recurring/AddEditRecurringTransactionScreen";
+import { RecurringTransactionDetailScreen } from "../screens/recurring/RecurringTransactionDetailScreen";
+import { FinanceCalendarScreen } from "../screens/calendar/FinanceCalendarScreen";
+import { CashForecastScreen } from "../screens/forecast/CashForecastScreen";
+import { AlertsCenterScreen } from "../screens/alerts/AlertsCenterScreen";
+import { AlertDetailScreen } from "../screens/alerts/AlertDetailScreen";
+import { AffordabilityCalculatorScreen } from "../screens/affordability/AffordabilityCalculatorScreen";
+import { AffordabilityResultScreen } from "../screens/affordability/AffordabilityResultScreen";
+import { TransactionTemplatesScreen } from "../screens/templates/TransactionTemplatesScreen";
+import { CreateEditTransactionTemplateScreen } from "../screens/templates/CreateEditTransactionTemplateScreen";
+import { SpendingInsightsScreen } from "../screens/spendingInsights/SpendingInsightsScreen";
+import { CategoryTrendDetailScreen } from "../screens/spendingInsights/CategoryTrendDetailScreen";
+import { FinancialGoalsScreen } from "../screens/goalsPlanner/FinancialGoalsScreen";
+import { GoalDetailScreen } from "../screens/goalsPlanner/GoalDetailScreen";
+import { CreateEditGoalScreen } from "../screens/goalsPlanner/CreateEditGoalScreen";
+import { GoalPlanScreen } from "../screens/goalsPlanner/GoalPlanScreen";
+import { GoalAutoPlanScreen } from "../screens/goalsPlanner/GoalAutoPlanScreen";
+import { MoneyHealthScoreScreen } from "../screens/moneyHealth/MoneyHealthScoreScreen";
+import { MonthlyReviewScreen } from "../screens/reviews/MonthlyReviewScreen";
+import { ReviewDetailScreen } from "../screens/reviews/ReviewDetailScreen";
+import { ReviewHistoryScreen } from "../screens/reviews/ReviewHistoryScreen";
+import { WhatChangedScreen } from "../screens/whatChanged/WhatChangedScreen";
+import { ScenarioPlannerScreen } from "../screens/scenarios/ScenarioPlannerScreen";
+import { ScenarioResultScreen } from "../screens/scenarios/ScenarioResultScreen";
+import { SmartTextEntryScreen } from "../screens/smartEntry/SmartTextEntryScreen";
+import { SmartEntrySettingsScreen } from "../screens/smartEntry/SmartEntrySettingsScreen";
+import { ParsedEntryConfirmationScreen } from "../screens/smartEntry/ParsedEntryConfirmationScreen";
+import { SmartEntryHistoryScreen } from "../screens/smartEntry/SmartEntryHistoryScreen";
+import { VoiceEntryScreen } from "../screens/voiceEntry/VoiceEntryScreen";
+import { DataQualityAssistantScreen } from "../screens/dataQuality/DataQualityAssistantScreen";
+import { PrivacyModeSettingsScreen } from "../screens/privacy/PrivacyModeSettingsScreen";
+import { FinanceAssistantScreen } from "../screens/assistant/FinanceAssistantScreen";
 import { PaymentMethodBreakdownScreen } from "../screens/financeReports/PaymentMethodBreakdownScreen";
 import { SalaryVsExpenseReportScreen } from "../screens/financeReports/SalaryVsExpenseReportScreen";
 import { LoanImpactOnSalaryReportScreen } from "../screens/financeReports/LoanImpactOnSalaryReportScreen";
@@ -171,9 +209,47 @@ const AppNavigator = () => {
       <RootStack.Screen name="AddEditAllocation" component={AddEditAllocationScreen} options={{ title: "Allocation" }} />
       <RootStack.Screen name="Budget" component={BudgetScreen} options={{ title: "Budget" }} />
       <RootStack.Screen name="AddEditBudget" component={AddEditBudgetScreen} options={{ title: "Budget Setup" }} />
+      <RootStack.Screen name="BudgetRecommendations" component={BudgetRecommendationsScreen} options={{ title: "Budget Recommendations" }} />
       <RootStack.Screen name="SavingsGoals" component={SavingsGoalsScreen} options={{ title: "Savings Goals" }} />
       <RootStack.Screen name="AddEditSavingsGoal" component={AddEditSavingsGoalScreen} options={{ title: "Savings Goal" }} />
       <RootStack.Screen name="AddSavingsProgress" component={AddSavingsProgressScreen} options={{ title: "Add Savings" }} />
+      <RootStack.Screen name="Bills" component={BillsScreen} options={{ title: "Bills" }} />
+      <RootStack.Screen name="AddEditBill" component={AddEditBillScreen} options={{ title: "Bill" }} />
+      <RootStack.Screen name="BillDetail" component={BillDetailScreen} options={{ title: "Bill Detail" }} />
+      <RootStack.Screen name="MarkBillPaid" component={MarkBillPaidScreen} options={{ title: "Mark Bill Paid" }} />
+      <RootStack.Screen name="RecurringTransactions" component={RecurringTransactionsScreen} options={{ title: "Recurring" }} />
+      <RootStack.Screen name="AddEditRecurringTransaction" component={AddEditRecurringTransactionScreen} options={{ title: "Recurring Item" }} />
+      <RootStack.Screen name="RecurringTransactionDetail" component={RecurringTransactionDetailScreen} options={{ title: "Recurring Detail" }} />
+      <RootStack.Screen name="FinanceCalendar" component={FinanceCalendarScreen} options={{ title: "Finance Calendar" }} />
+      <RootStack.Screen name="CashForecast" component={CashForecastScreen} options={{ title: "Cash Forecast" }} />
+      <RootStack.Screen name="AlertsCenter" component={AlertsCenterScreen} options={{ title: "Alerts" }} />
+      <RootStack.Screen name="AlertDetail" component={AlertDetailScreen} options={{ title: "Alert Detail" }} />
+      <RootStack.Screen name="AffordabilityCalculator" component={AffordabilityCalculatorScreen} options={{ title: "Can I Afford This?" }} />
+      <RootStack.Screen name="AffordabilityResult" component={AffordabilityResultScreen} options={{ title: "Affordability Result" }} />
+      <RootStack.Screen name="TransactionTemplates" component={TransactionTemplatesScreen} options={{ title: "Templates" }} />
+      <RootStack.Screen name="CreateEditTransactionTemplate" component={CreateEditTransactionTemplateScreen} options={{ title: "Transaction Template" }} />
+      <RootStack.Screen name="SpendingInsights" component={SpendingInsightsScreen} options={{ title: "Spending Insights" }} />
+      <RootStack.Screen name="CategoryTrendDetail" component={CategoryTrendDetailScreen} options={{ title: "Category Trend" }} />
+      <RootStack.Screen name="FinancialGoals" component={FinancialGoalsScreen} options={{ title: "Financial Goals" }} />
+      <RootStack.Screen name="GoalDetail" component={GoalDetailScreen} options={{ title: "Goal Detail" }} />
+      <RootStack.Screen name="CreateEditGoal" component={CreateEditGoalScreen} options={{ title: "Goal" }} />
+      <RootStack.Screen name="GoalPlan" component={GoalPlanScreen} options={{ title: "Goal Plan" }} />
+      <RootStack.Screen name="GoalAutoPlan" component={GoalAutoPlanScreen} options={{ title: "Smart Goal Plan" }} />
+      <RootStack.Screen name="SmartTextEntry" component={SmartTextEntryScreen} options={{ title: "Smart Entry" }} />
+      <RootStack.Screen name="SmartEntrySettings" component={SmartEntrySettingsScreen} options={{ title: "Smart Entry Settings" }} />
+      <RootStack.Screen name="VoiceEntry" component={VoiceEntryScreen} options={{ title: "Voice Entry" }} />
+      <RootStack.Screen name="ParsedEntryConfirmation" component={ParsedEntryConfirmationScreen} options={{ title: "Confirm Entry" }} />
+      <RootStack.Screen name="SmartEntryHistory" component={SmartEntryHistoryScreen} options={{ title: "Smart Entry History" }} />
+      <RootStack.Screen name="MoneyHealthScore" component={MoneyHealthScoreScreen} options={{ title: "Money Health" }} />
+      <RootStack.Screen name="MonthlyReview" component={MonthlyReviewScreen} options={{ title: "Monthly Review" }} />
+      <RootStack.Screen name="ReviewHistory" component={ReviewHistoryScreen} options={{ title: "Review History" }} />
+      <RootStack.Screen name="ReviewDetail" component={ReviewDetailScreen} options={{ title: "Review Detail" }} />
+      <RootStack.Screen name="WhatChanged" component={WhatChangedScreen} options={{ title: "What Changed" }} />
+      <RootStack.Screen name="ScenarioPlanner" component={ScenarioPlannerScreen} options={{ title: "Scenario Planner" }} />
+      <RootStack.Screen name="ScenarioResult" component={ScenarioResultScreen} options={{ title: "Scenario Result" }} />
+      <RootStack.Screen name="DataQualityAssistant" component={DataQualityAssistantScreen} options={{ title: "Data Quality" }} />
+      <RootStack.Screen name="PrivacyModeSettings" component={PrivacyModeSettingsScreen} options={{ title: "Privacy Mode" }} />
+      <RootStack.Screen name="FinanceAssistant" component={FinanceAssistantScreen} options={{ title: "Assistant" }} />
       <RootStack.Screen name="FinanceInsights" component={FinanceInsightsScreen} options={{ title: "Cash Flow Insights" }} />
       <RootStack.Screen name="PaymentMethodBreakdownFinance" component={PaymentMethodBreakdownScreen} options={{ title: "Payment Breakdown" }} />
       <RootStack.Screen name="SalaryVsExpenseReport" component={SalaryVsExpenseReportScreen} options={{ title: "Salary vs Expense" }} />

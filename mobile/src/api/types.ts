@@ -38,6 +38,7 @@ export type LoanStatus = "ACTIVE" | "PARTIALLY_PAID" | "COMPLETED" | "OVERDUE";
 export type PaymentType = "RECEIVED" | "PAID";
 export type PaymentMethod = "CASH" | "BANK" | "JAZZCASH" | "EASYPAISA" | "OTHER";
 export type InstallmentStatus = "UPCOMING" | "PARTIAL" | "PAID" | "OVERDUE";
+export type PlanningFrequency = "ONCE" | "WEEKLY" | "MONTHLY" | "QUARTERLY" | "YEARLY" | "CUSTOM";
 
 export type Loan = {
   _id: string;
@@ -96,6 +97,312 @@ export type Payment = {
   updatedAt: string;
 };
 
+export type Bill = {
+  _id: string;
+  title: string;
+  categoryId?: string | Category;
+  amount: number;
+  paymentMethod: PaymentMethod;
+  frequency: PlanningFrequency;
+  dueDate: string;
+  nextDueDate: string;
+  reminderEnabled: boolean;
+  reminderDaysBefore: number;
+  autoCreateExpense: boolean;
+  status: "ACTIVE" | "PAUSED" | "CANCELLED" | "COMPLETED";
+  note?: string;
+  createdAt: string;
+  updatedAt: string;
+};
+
+export type BillOccurrence = {
+  _id: string;
+  billId: string;
+  title: string;
+  amount: number;
+  dueDate: string;
+  paidDate?: string;
+  status: "UPCOMING" | "DUE_TODAY" | "OVERDUE" | "PAID" | "SKIPPED";
+  linkedTransactionId?: string;
+  note?: string;
+  createdAt: string;
+  updatedAt: string;
+};
+
+export type RecurringTransaction = {
+  _id: string;
+  title: string;
+  type: "INCOME" | "EXPENSE";
+  amount: number;
+  categoryId: string | Category;
+  paymentMethod: PaymentMethod;
+  frequency: Exclude<PlanningFrequency, "ONCE">;
+  startDate: string;
+  endDate?: string;
+  nextRunDate: string;
+  autoCreateTransaction: boolean;
+  reminderEnabled: boolean;
+  reminderDaysBefore: number;
+  status: "ACTIVE" | "PAUSED" | "CANCELLED" | "COMPLETED";
+  note?: string;
+  createdAt: string;
+  updatedAt: string;
+};
+
+export type RecurringOccurrence = {
+  _id: string;
+  recurringTransactionId: string;
+  type: "INCOME" | "EXPENSE";
+  title: string;
+  amount: number;
+  dueDate: string;
+  completedDate?: string;
+  status: "UPCOMING" | "DUE_TODAY" | "OVERDUE" | "COMPLETED" | "SKIPPED";
+  linkedTransactionId?: string;
+  createdAt: string;
+  updatedAt: string;
+};
+
+export type CalendarEvent = {
+  id: string;
+  type: string;
+  title: string;
+  amount?: number;
+  date: string;
+  status?: string;
+  severity: "INFO" | "SUCCESS" | "WARNING" | "DANGER";
+  relatedEntityType: string;
+  relatedEntityId: string;
+  metadata?: Record<string, unknown>;
+};
+
+export type Forecast = {
+  periodStart: string;
+  periodEnd: string;
+  currentAvailableCash: number;
+  expectedInflows: Record<string, number>;
+  expectedOutflows: Record<string, number>;
+  projectedCash: number;
+  projectedNetCashFlow: number;
+  confidenceLevel: "LOW" | "MEDIUM" | "HIGH";
+  warnings: string[];
+  assumptions: string[];
+  timeline: Array<{ id: string; type: string; title: string; date: string; amount: number; direction: "INFLOW" | "OUTFLOW" }>;
+};
+
+export type SmartAlert = {
+  _id: string;
+  type: string;
+  title: string;
+  message: string;
+  severity: "INFO" | "SUCCESS" | "WARNING" | "DANGER";
+  status: "ACTIVE" | "DISMISSED" | "RESOLVED";
+  relatedEntityType?: string;
+  relatedEntityId?: string;
+  metadata?: Record<string, unknown>;
+  createdAt: string;
+  updatedAt: string;
+};
+
+export type AffordabilityResult = {
+  amount: number;
+  result: "SAFE" | "RISKY" | "NOT_RECOMMENDED";
+  safeSpendingLimit: number;
+  currentAvailableCash: number;
+  projectedCashAfterPurchase: number;
+  upcomingOutflows: Record<string, number>;
+  savingsImpact: number;
+  budgetImpact?: { categoryBudgetRemaining: number; exceedsBudget: boolean } | null;
+  reasons: string[];
+  suggestions: string[];
+};
+
+export type TransactionTemplate = {
+  _id: string;
+  title: string;
+  type: "INCOME" | "EXPENSE";
+  amount: number;
+  categoryId: string | Category;
+  paymentMethod: PaymentMethod;
+  note?: string;
+  isFavorite: boolean;
+  lastUsedAt?: string;
+  createdAt: string;
+  updatedAt: string;
+};
+
+export type SpendingHabitInsight = {
+  id: string;
+  type: string;
+  title: string;
+  description: string;
+  severity: "INFO" | "SUCCESS" | "WARNING" | "DANGER";
+  currentValue: number;
+  previousValue?: number;
+  changePercent?: number;
+  relatedCategoryId?: string;
+  actionLabel?: string;
+};
+
+export type SmartEntryIntent =
+  | "CREATE_LOAN"
+  | "ADD_PAYMENT"
+  | "CREATE_EXPENSE"
+  | "CREATE_INCOME"
+  | "CREATE_SALARY"
+  | "CREATE_BILL"
+  | "CREATE_PROMISE"
+  | "CREATE_RECURRING_TRANSACTION"
+  | "UNKNOWN";
+
+export type SmartEntry = {
+  _id: string;
+  inputType: "TEXT" | "VOICE";
+  originalText: string;
+  language: "ROMAN_URDU" | "ENGLISH" | "MIXED";
+  intent: SmartEntryIntent;
+  parsedData: Record<string, unknown>;
+  confidence: number;
+  missingFields: string[];
+  status: "PARSED" | "CONFIRMED" | "CANCELLED" | "FAILED";
+  createdEntityType?: string;
+  createdEntityId?: string;
+  audioStored: false;
+  transcriptSaved: boolean;
+  createdAt: string;
+  updatedAt: string;
+};
+
+export type SmartEntryParseResult = {
+  parseId: string;
+  intent: SmartEntryIntent;
+  confidence: number;
+  parsed: Record<string, unknown>;
+  needsConfirmation: boolean;
+  missingFields: string[];
+  contactMatches: Array<{ contactId: string; name: string; phone?: string }>;
+  categorySuggestion?: CategorizationSuggestion | null;
+};
+
+export type CategorizationSuggestion = {
+  suggestedCategoryId?: string;
+  suggestedCategoryName: string;
+  suggestedPaymentMethod: PaymentMethod;
+  confidence: number;
+  reason: string;
+};
+
+export type MoneyHealthScore = {
+  score: number;
+  label: "EXCELLENT" | "GOOD" | "NEEDS_ATTENTION" | "CRITICAL";
+  summary: string;
+  breakdown: Array<{ factor: string; impact: number; message: string }>;
+  suggestions: Array<{ title: string; actionRoute?: string; entityId?: string }>;
+  updatedAt: string;
+};
+
+export type CycleReview = {
+  _id: string;
+  cycleStartDate: string;
+  cycleEndDate: string;
+  status: "GENERATED" | "ARCHIVED";
+  summaryData: Record<string, unknown>;
+  highlights: Array<{ title: string; description: string; severity?: string }>;
+  warnings: Array<{ title: string; description: string; severity?: string }>;
+  createdAt: string;
+  updatedAt: string;
+};
+
+export type WhatChangedInsight = {
+  id: string;
+  metric: string;
+  title: string;
+  description: string;
+  currentValue: number;
+  previousValue: number;
+  changeAmount: number;
+  changePercent: number;
+  severity: "INFO" | "SUCCESS" | "WARNING" | "DANGER";
+  actionLabel?: string;
+};
+
+export type ScenarioResult = {
+  scenarioId?: string;
+  type: "PURCHASE" | "REDUCE_EXPENSE" | "EXTRA_LOAN_PAYMENT" | "SALARY_DELAY" | "EXTRA_SAVING" | "CUSTOM";
+  projectedCashBefore: number;
+  projectedCashAfter: number;
+  impactAmount: number;
+  riskLevel: "LOW" | "MEDIUM" | "HIGH";
+  summary: string;
+  warnings: string[];
+  suggestions: string[];
+  affectedBudgets: unknown[];
+  affectedGoals: unknown[];
+};
+
+export type DataQualityIssue = {
+  id: string;
+  type: string;
+  title: string;
+  description: string;
+  severity: "INFO" | "SUCCESS" | "WARNING" | "DANGER";
+  entityType: string;
+  entityId: string;
+  actionLabel: string;
+  actionRoute: string;
+};
+
+export type PrivacySettings = {
+  _id?: string;
+  privacyModeEnabled: boolean;
+  hideAmountsByDefault: boolean;
+  requireUnlockToReveal: boolean;
+  blurInAppSwitcher: boolean;
+  scope: "DASHBOARD_ONLY" | "EVERYWHERE";
+  smartEntryEnabled: boolean;
+  voiceEntryEnabled: boolean;
+  saveSmartEntryHistory: boolean;
+  saveVoiceTranscriptHistory: boolean;
+  smartEntryLanguagePreference: "ROMAN_URDU" | "ENGLISH" | "MIXED";
+};
+
+export type AssistantResponse = {
+  answer: string;
+  cards: unknown[];
+  relatedData: unknown;
+  suggestedActions: Array<{ label: string; route: string }>;
+};
+
+export type GoalAutoPlan = {
+  targetAmount: number;
+  currentAmount: number;
+  remainingAmount: number;
+  deadline?: string;
+  monthsRemaining?: number;
+  requiredMonthlySaving: number;
+  realisticMonthlySavingBasedOnCashFlow: number;
+  isOnTrack: boolean;
+  projectedCompletionDate?: string;
+  suggestions: string[];
+};
+
+export type BudgetRecommendation = {
+  recommendedTotalBudget: number;
+  categoryRecommendations: Array<{
+    categoryId: string;
+    categoryName: string;
+    icon?: string;
+    color?: string;
+    averageSpending: number;
+    currentBudget: number;
+    recommendedBudget: number;
+    reason: string;
+    confidence: string;
+  }>;
+  savingsSuggestion: string;
+  warnings: string[];
+};
+
 export type PaymentProof = {
   _id: string;
   userId: string;
@@ -117,6 +424,11 @@ export type AuthPayload = {
 
 export type PaginatedContacts = {
   contacts: Contact[];
+  pagination: Pagination;
+};
+
+export type PaginatedSmartEntries = {
+  entries: SmartEntry[];
   pagination: Pagination;
 };
 
@@ -862,14 +1174,27 @@ export type Budget = {
 export type SavingsGoal = {
   _id: string;
   name: string;
+  type?: "EMERGENCY_FUND" | "BUY_LAPTOP" | "BIKE" | "EDUCATION" | "FAMILY_SUPPORT" | "BUSINESS_CAPITAL" | "VACATION" | "DEBT_PAYOFF" | "CUSTOM";
   targetAmount: number;
   currentAmount: number;
   monthlyTarget?: number;
   deadline?: string;
+  priority?: "LOW" | "MEDIUM" | "HIGH";
   status: "ACTIVE" | "COMPLETED" | "PAUSED";
+  autoContributionEnabled?: boolean;
   progressPercent?: number;
   createdAt: string;
   updatedAt: string;
+};
+
+export type GoalPlan = {
+  goalId: string;
+  monthsRemaining?: number;
+  requiredMonthlySaving: number;
+  currentProgress: number;
+  onTrack: boolean;
+  behindAmount: number;
+  recommendedAction: string;
 };
 
 export type SavingsGoalProgress = {
@@ -884,6 +1209,36 @@ export type SavingsGoalProgress = {
 
 export type PaginatedSavingsGoalProgress = {
   progress: SavingsGoalProgress[];
+  pagination: Pagination;
+};
+
+export type PaginatedBills = {
+  bills: Bill[];
+  pagination: Pagination;
+};
+
+export type PaginatedBillOccurrences = {
+  occurrences: BillOccurrence[];
+  pagination: Pagination;
+};
+
+export type PaginatedRecurringTransactions = {
+  recurringTransactions: RecurringTransaction[];
+  pagination: Pagination;
+};
+
+export type PaginatedRecurringOccurrences = {
+  occurrences: RecurringOccurrence[];
+  pagination: Pagination;
+};
+
+export type PaginatedSmartAlerts = {
+  alerts: SmartAlert[];
+  pagination: Pagination;
+};
+
+export type PaginatedTransactionTemplates = {
+  templates: TransactionTemplate[];
   pagination: Pagination;
 };
 

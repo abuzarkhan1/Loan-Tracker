@@ -35,6 +35,24 @@ export const getBudgets = asyncHandler(async (req, res) => {
   return sendResponse(res, 200, "Budgets fetched successfully", data);
 });
 
+export const getBudgetRecommendations = asyncHandler(async (req, res) => {
+  const userId = req.user!.id;
+  const key = cacheKeys.budgets.recommendations(userId);
+  const cached = await cacheService.get(key);
+  if (cached) return sendResponse(res, 200, "Budget recommendations fetched successfully", cached);
+  const data = await budgetService.recommendations(userId);
+  await cacheService.set(key, data, cacheTtl.reports);
+  return sendResponse(res, 200, "Budget recommendations fetched successfully", data);
+});
+
+export const applyBudgetRecommendations = asyncHandler(async (req, res) => {
+  const userId = req.user!.id;
+  const data = await budgetService.applyRecommendations(userId, req.body.categoryIds);
+  await cacheInvalidation.financeChanged(userId);
+  await auditLogService.record({ userId, action: "BUDGET_RECOMMENDATIONS_APPLIED", entityType: "BUDGET", entityId: data?._id?.toString(), newValue: serializeAuditValue(data), ...getAuditRequestMeta(req) });
+  return sendResponse(res, 200, "Budget recommendations applied successfully", data);
+});
+
 export const updateBudget = asyncHandler(async (req, res) => {
   const userId = req.user!.id;
   const data = await budgetService.update(userId, String(req.params.id), req.body);

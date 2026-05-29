@@ -9,12 +9,12 @@ import { Text, TextInput, TouchableOpacity, View } from "react-native";
 import { api } from "../../api/client";
 import { ContactWithBalance, DeviceContactImportPayload } from "../../api/types";
 import { AppButton } from "../../components/AppButton";
+import { AmountText } from "../../components/AmountText";
 import { EmptyState, ErrorState, LoadingState } from "../../components/StateViews";
 import { Screen } from "../../components/Screen";
 import { RootStackParamList } from "../../navigation/types";
 import { showAlert } from "../../providers/AlertProvider";
 import { useAppTheme } from "../../providers/ThemeProvider";
-import { formatCurrency } from "../../utils/format";
 import { fontFamily } from "../../utils/theme";
 
 type Navigation = NativeStackNavigationProp<RootStackParamList>;
@@ -35,7 +35,7 @@ const contactToPayload = (contact: Contacts.ExistingContact): DeviceContactImpor
 const BalanceBadge = ({ contact }: { contact?: ContactWithBalance }) => {
   const { theme } = useAppTheme();
   const balance = contact?.balanceSummary?.overallBalance || 0;
-  const label = balance > 0 ? `${formatCurrency(balance)} lene hain` : balance < 0 ? `${formatCurrency(Math.abs(balance))} dene hain` : "Settled";
+  const suffix = balance > 0 ? " lene hain" : balance < 0 ? " dene hain" : "";
 
   return (
     <View
@@ -47,15 +47,28 @@ const BalanceBadge = ({ contact }: { contact?: ContactWithBalance }) => {
         backgroundColor: balance > 0 ? theme.mint : balance < 0 ? theme.peach : theme.backgroundSoft,
       }}
     >
-      <Text
+      {balance === 0 ? (
+        <Text
+          style={{
+            color: theme.muted,
+            fontFamily: fontFamily.extraBold,
+            fontSize: 10,
+          }}
+        >
+          Settled
+        </Text>
+      ) : (
+      <AmountText
+        amount={Math.abs(balance)}
+        suffix={suffix}
+        hiddenLabel="Rs. ****"
         style={{
           color: balance > 0 ? theme.success : balance < 0 ? theme.danger : theme.muted,
           fontFamily: fontFamily.extraBold,
           fontSize: 10,
         }}
-      >
-        {label}
-      </Text>
+      />
+      )}
     </View>
   );
 };
@@ -131,6 +144,18 @@ export const ContactsScreen = () => {
     }, [loadDeviceContacts]),
   );
 
+  const handleRefresh = useCallback(async () => {
+    await Promise.all([
+      loadDeviceContacts().catch(() => {
+        setPermissionState("denied");
+        setContactsError("Phone contacts load nahi ho sake.");
+      }),
+      appContactsQuery.refetch(),
+      favoritesQuery.refetch(),
+      recentQuery.refetch(),
+    ]);
+  }, [appContactsQuery, favoritesQuery, loadDeviceContacts, recentQuery]);
+
   const requestAccess = async () => {
     const permission = await Contacts.requestPermissionsAsync();
     if (permission.status === "granted") {
@@ -183,7 +208,7 @@ export const ContactsScreen = () => {
   const showPermissionCard = permissionState !== "granted";
 
   return (
-    <Screen className="pt-5">
+    <Screen className="pt-5" onRefresh={handleRefresh} refreshLabel="Refreshing contacts...">
       <View className="flex-row items-center justify-between">
         <View className="flex-1">
           <Text className="text-2xl font-black text-dark">Contacts</Text>

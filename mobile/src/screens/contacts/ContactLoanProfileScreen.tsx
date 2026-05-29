@@ -3,6 +3,7 @@ import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { Activity, BookOpen, FileText, HandCoins, Heart, Landmark, Link2, Mail, MessageSquareText, Plus, ReceiptText, Share2, ShieldCheck, UserRoundCog } from "lucide-react-native";
 import { Text, TouchableOpacity, View } from "react-native";
 import { api } from "../../api/client";
+import { AmountText } from "../../components/AmountText";
 import { AppButton } from "../../components/AppButton";
 import { LoanCard } from "../../components/LoanCard";
 import { Screen } from "../../components/Screen";
@@ -101,12 +102,11 @@ export const ContactLoanProfileScreen = ({ navigation, route }: Props) => {
 
         <View className="mt-5 rounded-2xl bg-background-soft p-4">
           <Text className="text-xs font-black uppercase text-muted">Net Balance</Text>
-          <Text
+          <AmountText
+            amount={summary.overallBalance}
             className="mt-1 text-2xl font-black"
             style={{ color: summary.overallBalance >= 0 ? theme.success : theme.danger, fontFamily: fontFamily.extraBold }}
-          >
-            {formatCurrency(summary.overallBalance)}
-          </Text>
+          />
           <Text className="mt-1 text-xs font-semibold text-muted">
             Positive ka matlab mujhe lene hain, negative ka matlab mujhe dene hain.
           </Text>
@@ -226,7 +226,7 @@ export const ContactLoanProfileScreen = ({ navigation, route }: Props) => {
               <HandCoins color={theme.primaryDark} size={18} />
             </View>
             <View className="flex-1">
-              <Text className="text-sm font-black text-dark">{formatCurrency(promise.promisedAmount)}</Text>
+              <AmountText amount={promise.promisedAmount} className="text-sm font-black text-dark" />
               <Text className="mt-1 text-xs font-semibold text-muted">{promise.status} · {formatDate(promise.promiseDate)}</Text>
             </View>
           </View>

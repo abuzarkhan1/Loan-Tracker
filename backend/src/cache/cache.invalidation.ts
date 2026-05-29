@@ -15,6 +15,7 @@ export const cacheInvalidation = {
       cacheService.delByPattern(cacheKeys.activity.pattern(userId)),
       cacheService.delByPattern(cacheKeys.recovery.pattern(userId)),
       cacheService.delByPattern(cacheKeys.communications.pattern(userId)),
+      cacheService.delByPattern(cacheKeys.phase8.pattern(userId)),
     ]);
   },
 
@@ -32,6 +33,7 @@ export const cacheInvalidation = {
       cacheService.delByPattern(cacheKeys.activity.pattern(userId)),
       cacheService.delByPattern(cacheKeys.recovery.pattern(userId)),
       cacheService.delByPattern(cacheKeys.communications.pattern(userId)),
+      cacheService.delByPattern(cacheKeys.phase8.pattern(userId)),
     ]);
   },
 
@@ -47,10 +49,23 @@ export const cacheInvalidation = {
       cacheService.delByPattern(cacheKeys.salary.pattern(userId)),
       cacheService.delByPattern(cacheKeys.budgets.pattern(userId)),
       cacheService.delByPattern(cacheKeys.savingsGoals.pattern(userId)),
+      cacheService.delByPattern(cacheKeys.bills.pattern(userId)),
+      cacheService.delByPattern(cacheKeys.recurringTransactions.pattern(userId)),
+      cacheService.delByPattern(cacheKeys.calendar.pattern(userId)),
+      cacheService.delByPattern(cacheKeys.forecast.pattern(userId)),
+      cacheService.delByPattern(cacheKeys.alerts.pattern(userId)),
+      cacheService.delByPattern(cacheKeys.transactionTemplates.pattern(userId)),
+      cacheService.delByPattern(cacheKeys.spendingInsights.pattern(userId)),
+      cacheService.delByPattern(cacheKeys.goals.pattern(userId)),
+      cacheService.delByPattern(cacheKeys.phase8.pattern(userId)),
       cacheService.delByPattern(cacheKeys.dashboard.pattern(userId)),
       cacheService.delByPattern(cacheKeys.reports.pattern(userId)),
       cacheService.delByPattern(cacheKeys.activity.pattern(userId)),
     ]);
+  },
+
+  async phase8Changed(userId: string) {
+    await cacheService.delByPattern(cacheKeys.phase8.pattern(userId));
   },
 
   async receiptChanged(userId: string) {
@@ -71,6 +86,7 @@ export const cacheInvalidation = {
       cacheService.delByPattern(cacheKeys.email.pattern(userId)),
       cacheService.delByPattern(cacheKeys.communications.pattern(userId)),
       cacheService.delByPattern(cacheKeys.activity.pattern(userId)),
+      cacheService.delByPattern(cacheKeys.phase8.pattern(userId)),
     ]);
   },
 

@@ -25,3 +25,9 @@ export const budgetListSchema = z.object({
     date: z.coerce.date().optional(),
   }),
 });
+
+export const applyBudgetRecommendationsSchema = z.object({
+  body: z.object({
+    categoryIds: z.array(objectIdSchema).optional(),
+  }).default({}),
+});

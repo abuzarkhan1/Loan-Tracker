@@ -2,6 +2,7 @@ import { LucideIcon } from "lucide-react-native";
 import { Text, View } from "react-native";
 import { useAppTheme } from "../providers/ThemeProvider";
 import { fontFamily } from "../utils/theme";
+import { AmountText } from "./AmountText";
 
 export const SummaryCard = ({
   label,
@@ -48,9 +49,11 @@ export const SummaryCard = ({
         <Text style={{ color: theme.muted, fontFamily: fontFamily.bold, fontSize: 11, textTransform: "uppercase" }}>
           {label}
         </Text>
-        <Text style={{ color: theme.text, fontFamily: fontFamily.extraBold, fontSize: 20, marginTop: 4 }} numberOfLines={1}>
-          {value}
-        </Text>
+        <AmountText
+          value={value}
+          style={{ color: theme.text, fontFamily: fontFamily.extraBold, fontSize: 20, marginTop: 4 }}
+          numberOfLines={1}
+        />
       </View>
     </View>
   );

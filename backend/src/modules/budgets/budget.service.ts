@@ -1,8 +1,10 @@
 import { Types } from "mongoose";
 import { ApiError } from "../../utils/apiError";
+import { recommendBudget } from "../../utils/budgetRecommendations";
 import { TransactionModel } from "../transactions/transaction.model";
 import { salaryService } from "../salary/salary.service";
 import { BudgetModel } from "./budget.model";
+import { CategoryModel } from "../categories/category.model";
 
 const toObjectId = (id: string | Types.ObjectId) => typeof id === "string" ? new Types.ObjectId(id) : id;
 
@@ -102,5 +104,54 @@ export const budgetService = {
     if (!budget) throw new ApiError(404, "Budget not found");
     await budget.deleteOne();
     return { id };
+  },
+
+  async recommendations(userId: string) {
+    const now = new Date();
+    const cycle = await salaryService.getCurrentCycle(userId, now);
+    const start = new Date(cycle.cycleStartDate);
+    start.setMonth(start.getMonth() - 3);
+    const [rows, categories, currentBudget] = await Promise.all([
+      TransactionModel.aggregate([
+        { $match: { userId: toObjectId(userId), type: "EXPENSE", date: { $gte: start, $lte: cycle.cycleEndDate }, categoryId: { $ne: null } } },
+        { $group: { _id: "$categoryId", total: { $sum: "$amount" }, count: { $sum: 1 } } },
+        { $sort: { total: -1 } },
+      ]),
+      CategoryModel.find({ userId: toObjectId(userId), type: "EXPENSE", isActive: true }).select("name icon color"),
+      this.current(userId, now),
+    ]);
+    const categoryRecommendations = categories.map((category) => {
+      const row = rows.find((item) => item._id?.toString() === category._id.toString());
+      const averageSpending = Math.round(((row?.total || 0) / 3) * 100) / 100;
+      const currentCategoryBudget = currentBudget?.categoryBudgets?.find((item: any) => item.categoryId?._id?.toString?.() === category._id.toString() || item.categoryId?.toString?.() === category._id.toString());
+      const recommendation = recommendBudget(averageSpending, currentCategoryBudget?.amount);
+      return {
+        categoryId: category._id.toString(),
+        categoryName: category.name,
+        icon: category.icon,
+        color: category.color,
+        averageSpending,
+        currentBudget: currentCategoryBudget?.amount || 0,
+        ...recommendation,
+      };
+    }).filter((item) => item.averageSpending > 0 || item.currentBudget > 0);
+    const recommendedTotalBudget = categoryRecommendations.reduce((sum, item) => sum + item.recommendedBudget, 0);
+    return {
+      recommendedTotalBudget,
+      categoryRecommendations,
+      savingsSuggestion: "Keep at least one realistic savings target before accepting a higher spending budget.",
+      warnings: currentBudget?.usedPercent >= 100 ? ["Current budget is already exceeded. Review high-spend categories first."] : [],
+    };
+  },
+
+  async applyRecommendations(userId: string, categoryIds?: string[]) {
+    const recommendations = await this.recommendations(userId);
+    const selected = categoryIds?.length
+      ? recommendations.categoryRecommendations.filter((item) => categoryIds.includes(item.categoryId))
+      : recommendations.categoryRecommendations;
+    return this.create(userId, {
+      totalBudget: selected.reduce((sum, item) => sum + item.recommendedBudget, 0),
+      categoryBudgets: selected.map((item) => ({ categoryId: item.categoryId, amount: item.recommendedBudget })),
+    });
   },
 };

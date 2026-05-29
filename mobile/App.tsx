@@ -14,6 +14,7 @@ import { Text, TextInput, View } from "react-native";
 import { SafeAreaProvider } from "react-native-safe-area-context";
 import { AuthProvider } from "./src/providers/AuthProvider";
 import { SecurityProvider, useSecurity } from "./src/providers/SecurityProvider";
+import { PrivacyProvider } from "./src/providers/PrivacyProvider";
 import { ThemeProvider, useAppTheme } from "./src/providers/ThemeProvider";
 import { AlertProvider } from "./src/providers/AlertProvider";
 import { RootNavigator } from "./src/navigation/RootNavigator";
@@ -82,12 +83,14 @@ export default function App() {
         <ThemeProvider>
           <AlertProvider>
             <AuthProvider>
-              <SecurityProvider>
-                <SecurityActivityGate>
-                  <ThemedStatusBar />
-                  <RootNavigator />
-                </SecurityActivityGate>
-              </SecurityProvider>
+              <PrivacyProvider>
+                <SecurityProvider>
+                  <SecurityActivityGate>
+                    <ThemedStatusBar />
+                    <RootNavigator />
+                  </SecurityActivityGate>
+                </SecurityProvider>
+              </PrivacyProvider>
             </AuthProvider>
           </AlertProvider>
         </ThemeProvider>

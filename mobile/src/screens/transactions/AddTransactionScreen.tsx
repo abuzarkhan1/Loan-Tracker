@@ -1,7 +1,7 @@
 import { zodResolver } from "@hookform/resolvers/zod";
 import { NativeStackNavigationProp } from "@react-navigation/native-stack";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
-import { Save } from "lucide-react-native";
+import { Save, Sparkles } from "lucide-react-native";
 import { useEffect } from "react";
 import { Controller, useForm } from "react-hook-form";
 import { Text, TouchableOpacity, View } from "react-native";
@@ -65,6 +65,9 @@ const TransactionForm = ({ navigation, route, forcedType }: Props & { forcedType
   });
 
   const type = watch("type");
+  const source = watch("source");
+  const note = watch("note");
+  const amount = watch("amount");
   const categoriesQuery = useQuery({
     queryKey: ["categories", type],
     queryFn: () => api.getCategories({ type }),
@@ -103,13 +106,37 @@ const TransactionForm = ({ navigation, route, forcedType }: Props & { forcedType
       };
       return isEditing ? api.updateTransaction(transactionId!, payload) : api.createTransaction(payload);
     },
-    onSuccess: async () => {
+    onSuccess: async (_, values) => {
+      if (values.categoryId && (values.source || values.note)) {
+        void api.saveCategorizationFeedback({
+          text: [values.source, values.note].filter(Boolean).join(" "),
+          type: values.type,
+          categoryId: values.categoryId,
+          paymentMethod: values.paymentMethod as PaymentMethod,
+        }).catch(() => undefined);
+      }
       await queryClient.invalidateQueries({ queryKey: ["transactions"] });
       await queryClient.invalidateQueries({ queryKey: ["finance"] });
       await queryClient.invalidateQueries({ queryKey: ["salary"] });
       navigation.goBack();
     },
   });
+
+  const suggestionMutation = useMutation({
+    mutationFn: () => api.suggestCategorization({ text: [source, note].filter(Boolean).join(" "), amount: Number(amount || 0), type }),
+    onSuccess: (suggestion) => {
+      const category = categoriesQuery.data?.find((item) => item.name.toLowerCase() === suggestion.suggestedCategoryName.toLowerCase());
+      if (category) setValue("categoryId", category._id);
+      setValue("paymentMethod", suggestion.suggestedPaymentMethod);
+    },
+  });
+
+  useEffect(() => {
+    const text = [source, note].filter(Boolean).join(" ").trim();
+    if (!text || Number(amount || 0) <= 0) return undefined;
+    const timeout = setTimeout(() => suggestionMutation.mutate(), 650);
+    return () => clearTimeout(timeout);
+  }, [amount, note, source, type]);
 
   if (transactionQuery.isLoading) return <Screen><LoadingState label="Loading transaction..." /></Screen>;
 
@@ -144,6 +171,28 @@ const TransactionForm = ({ navigation, route, forcedType }: Props & { forcedType
       ) : null}
 
       <FormInput control={control} name="amount" label="Amount" keyboardType="numeric" placeholder="5000" error={errors.amount?.message} />
+
+      <View className="rounded-3xl border border-border bg-card p-4" style={theme.shadowSoft}>
+        <View className="flex-row items-center justify-between gap-3">
+          <View className="flex-1">
+            <Text className="text-sm font-black text-dark">Smart Categorization</Text>
+            <Text className="mt-1 text-xs font-semibold text-muted">Note/source se category aur payment method suggest karega.</Text>
+          </View>
+          <TouchableOpacity
+            activeOpacity={0.86}
+            onPress={() => suggestionMutation.mutate()}
+            disabled={suggestionMutation.isPending || (!source && !note)}
+            className="h-10 w-10 items-center justify-center rounded-full bg-background-soft"
+          >
+            <Sparkles color={theme.primary} size={18} />
+          </TouchableOpacity>
+        </View>
+        {suggestionMutation.data ? (
+          <Text className="mt-3 text-xs font-bold text-primary">
+            Suggested {suggestionMutation.data.suggestedCategoryName} · {suggestionMutation.data.suggestedPaymentMethod} · {Math.round(suggestionMutation.data.confidence * 100)}%
+          </Text>
+        ) : null}
+      </View>
 
       <Controller
         control={control}

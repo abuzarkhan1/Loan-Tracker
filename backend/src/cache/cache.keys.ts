@@ -129,6 +129,7 @@ export const cacheKeys = {
   budgets: {
     current: (userId: string, query: QueryParams = {}) => `${userPrefix(userId)}:budgets:current:${stableQueryKey(query)}`,
     list: (userId: string, query: QueryParams = {}) => `${userPrefix(userId)}:budgets:list:${stableQueryKey(query)}`,
+    recommendations: (userId: string) => `${userPrefix(userId)}:budgets:recommendations`,
     pattern: (userId: string) => `${userPrefix(userId)}:budgets:*`,
   },
   savingsGoals: {
@@ -145,6 +146,49 @@ export const cacheKeys = {
     insights: (userId: string, query: QueryParams = {}) => `${userPrefix(userId)}:finance:insights:${stableQueryKey(query)}`,
     report: (userId: string, name: string, query: QueryParams = {}) => `${userPrefix(userId)}:finance:report:${name}:${stableQueryKey(query)}`,
     pattern: (userId: string) => `${userPrefix(userId)}:finance:*`,
+  },
+  bills: {
+    list: (userId: string, query: QueryParams = {}) => `${userPrefix(userId)}:bills:list:${stableQueryKey(query)}`,
+    upcoming: (userId: string, query: QueryParams = {}) => `${userPrefix(userId)}:bills:upcoming:${stableQueryKey(query)}`,
+    pattern: (userId: string) => `${userPrefix(userId)}:bills:*`,
+  },
+  recurringTransactions: {
+    list: (userId: string, query: QueryParams = {}) => `${userPrefix(userId)}:recurring-transactions:list:${stableQueryKey(query)}`,
+    upcoming: (userId: string, query: QueryParams = {}) => `${userPrefix(userId)}:recurring-transactions:upcoming:${stableQueryKey(query)}`,
+    pattern: (userId: string) => `${userPrefix(userId)}:recurring-transactions:*`,
+  },
+  calendar: {
+    events: (userId: string, query: QueryParams = {}) => `${userPrefix(userId)}:calendar:events:${stableQueryKey(query)}`,
+    monthSummary: (userId: string, query: QueryParams = {}) => `${userPrefix(userId)}:calendar:month-summary:${stableQueryKey(query)}`,
+    pattern: (userId: string) => `${userPrefix(userId)}:calendar:*`,
+  },
+  forecast: {
+    currentCycle: (userId: string) => `${userPrefix(userId)}:forecast:current-cycle`,
+    monthEnd: (userId: string) => `${userPrefix(userId)}:forecast:month-end`,
+    custom: (userId: string, query: QueryParams = {}) => `${userPrefix(userId)}:forecast:custom:${stableQueryKey(query)}`,
+    pattern: (userId: string) => `${userPrefix(userId)}:forecast:*`,
+  },
+  alerts: {
+    list: (userId: string, query: QueryParams = {}) => `${userPrefix(userId)}:alerts:list:${stableQueryKey(query)}`,
+    pattern: (userId: string) => `${userPrefix(userId)}:alerts:*`,
+  },
+  transactionTemplates: {
+    list: (userId: string, query: QueryParams = {}) => `${userPrefix(userId)}:transaction-templates:list:${stableQueryKey(query)}`,
+    pattern: (userId: string) => `${userPrefix(userId)}:transaction-templates:*`,
+  },
+  spendingInsights: {
+    habits: (userId: string, query: QueryParams = {}) => `${userPrefix(userId)}:spending-insights:habits:${stableQueryKey(query)}`,
+    pattern: (userId: string) => `${userPrefix(userId)}:spending-insights:*`,
+  },
+  goals: {
+    planner: (userId: string) => `${userPrefix(userId)}:goals:planner`,
+    pattern: (userId: string) => `${userPrefix(userId)}:goals:*`,
+  },
+  phase8: {
+    moneyHealth: (userId: string) => `${userPrefix(userId)}:phase8:money-health`,
+    whatChanged: (userId: string) => `${userPrefix(userId)}:phase8:what-changed`,
+    dataQuality: (userId: string) => `${userPrefix(userId)}:phase8:data-quality`,
+    pattern: (userId: string) => `${userPrefix(userId)}:phase8:*`,
   },
 };
 

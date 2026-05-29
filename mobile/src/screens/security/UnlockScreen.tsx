@@ -41,7 +41,7 @@ export const UnlockScreen = () => {
   }, [pin, verifyPin]);
 
   return (
-    <Screen scroll={false} className="items-center justify-center px-8">
+    <Screen scroll={false} className="items-center justify-center px-8" refreshable={false}>
       <BrandLogo size={82} />
       <Text className="mt-6 text-2xl font-black text-dark">Unlock Loan Tracker</Text>
       <Text className="mt-2 text-center text-sm font-medium text-muted">Apna 4-digit PIN enter karein.</Text>

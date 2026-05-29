@@ -2,7 +2,7 @@ import { useNavigation } from "@react-navigation/native";
 import { NativeStackNavigationProp } from "@react-navigation/native-stack";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { useMutation, useQueryClient } from "@tanstack/react-query";
-import { Activity, Banknote, Bell, BellRing, ChevronRight, CreditCard, DatabaseBackup, Edit3, FileSpreadsheet, FileText, History, Link2, LogOut, Mail, MessageSquareText, Moon, Palette, PiggyBank, ReceiptText, Save, Shield, Sun, Tags, UserRound, WalletCards } from "lucide-react-native";
+import { Activity, Banknote, Bell, BellRing, Calculator, CalendarDays, ChevronRight, CreditCard, DatabaseBackup, Edit3, FileSpreadsheet, FileText, Flag, History, Link2, LogOut, Mail, MessageSquareText, Mic, Moon, Palette, ReceiptText, Repeat2, Save, Shield, Sun, Tags, UserRound, WalletCards } from "lucide-react-native";
 import { useEffect, useState } from "react";
 import { useForm } from "react-hook-form";
 import { Text, TouchableOpacity, View } from "react-native";
@@ -288,6 +288,58 @@ export const SettingsScreen = () => {
       </View>
 
       <View className="mt-5 gap-3 rounded-lg border border-border bg-card p-5" style={theme.shadowSoft}>
+        <Text className="text-xs font-black uppercase text-muted">Smart Assistant</Text>
+        <SettingsRow
+          title="Smart Entry"
+          subtitle="Roman Urdu/English se loan, expense, bill ya payment parse karein."
+          icon={Calculator}
+          onPress={() => navigation.navigate("SmartTextEntry")}
+        />
+        <View className="h-px bg-border" />
+        <SettingsRow
+          title="Voice Entry"
+          subtitle="Device speech recognition se smart entry banayen."
+          icon={Mic}
+          onPress={() => navigation.navigate("VoiceEntry")}
+        />
+        <View className="h-px bg-border" />
+        <SettingsRow
+          title="Smart Entry Settings"
+          subtitle="Voice, transcript history aur language preference."
+          icon={Calculator}
+          onPress={() => navigation.navigate("SmartEntrySettings")}
+        />
+        <View className="h-px bg-border" />
+        <SettingsRow
+          title="Finance Assistant"
+          subtitle="Rule-based money guidance, no paid AI upload."
+          icon={MessageSquareText}
+          onPress={() => navigation.navigate("FinanceAssistant")}
+        />
+        <View className="h-px bg-border" />
+        <SettingsRow
+          title="Money Health"
+          subtitle="Cash flow, budgets aur loan pressure score."
+          icon={Activity}
+          onPress={() => navigation.navigate("MoneyHealthScore")}
+        />
+        <View className="h-px bg-border" />
+        <SettingsRow
+          title="Privacy Mode"
+          subtitle="Sensitive amounts hide/reveal controls."
+          icon={Shield}
+          onPress={() => navigation.navigate("PrivacyModeSettings")}
+        />
+        <View className="h-px bg-border" />
+        <SettingsRow
+          title="Data Quality Assistant"
+          subtitle="Missing due dates, phone numbers, categories aur reminders."
+          icon={DatabaseBackup}
+          onPress={() => navigation.navigate("DataQualityAssistant")}
+        />
+      </View>
+
+      <View className="mt-5 gap-3 rounded-lg border border-border bg-card p-5" style={theme.shadowSoft}>
         <Text className="text-xs font-black uppercase text-muted">Money</Text>
         <SettingsRow
           title="Salary Settings"
@@ -311,10 +363,45 @@ export const SettingsScreen = () => {
         />
         <View className="h-px bg-border" />
         <SettingsRow
-          title="Savings Goals"
-          subtitle="Targets aur progress tracking."
-          icon={PiggyBank}
-          onPress={() => navigation.navigate("SavingsGoals")}
+          title="Bills & Subscriptions"
+          subtitle="Rent, utilities, subscriptions aur due bills."
+          icon={ReceiptText}
+          onPress={() => navigation.navigate("Bills")}
+        />
+        <View className="h-px bg-border" />
+        <SettingsRow
+          title="Recurring Transactions"
+          subtitle="Regular income aur expenses."
+          icon={Repeat2}
+          onPress={() => navigation.navigate("RecurringTransactions")}
+        />
+        <View className="h-px bg-border" />
+        <SettingsRow
+          title="Finance Calendar"
+          subtitle="Salary, bills, loans aur goals calendar."
+          icon={CalendarDays}
+          onPress={() => navigation.navigate("FinanceCalendar")}
+        />
+        <View className="h-px bg-border" />
+        <SettingsRow
+          title="Smart Alerts"
+          subtitle="Budget, bills aur forecast warnings."
+          icon={BellRing}
+          onPress={() => navigation.navigate("AlertsCenter")}
+        />
+        <View className="h-px bg-border" />
+        <SettingsRow
+          title="Transaction Templates"
+          subtitle="Common income/expense one tap entries."
+          icon={Calculator}
+          onPress={() => navigation.navigate("TransactionTemplates")}
+        />
+        <View className="h-px bg-border" />
+        <SettingsRow
+          title="Financial Goals"
+          subtitle="Smart savings goals and monthly plan."
+          icon={Flag}
+          onPress={() => navigation.navigate("FinancialGoals")}
         />
         <View className="h-px bg-border" />
         <SettingsRow

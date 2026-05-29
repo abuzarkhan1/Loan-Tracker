@@ -5,6 +5,9 @@ export const queueNames = {
   audit: "auditQueue",
   email: "emailQueue",
   salary: "salaryQueue",
+  bill: "billQueue",
+  recurringTransaction: "recurringTransactionQueue",
+  alert: "alertQueue",
 } as const;
 
 export const jobNames = {
@@ -17,6 +20,9 @@ export const jobNames = {
   receiptPdf: "receipt-pdf",
   sendEmail: "send-email",
   createExpectedSalary: "create-expected-salary",
+  generateBillOccurrences: "generate-bill-occurrences",
+  generateRecurringOccurrences: "generate-recurring-occurrences",
+  evaluateAlerts: "evaluate-alerts",
   cleanupTempFiles: "cleanup-temp-files",
   writeAuditLog: "write-audit-log",
 } as const;

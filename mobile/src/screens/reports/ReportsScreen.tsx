@@ -2,8 +2,8 @@ import { useMemo } from "react";
 import { useNavigation } from "@react-navigation/native";
 import { NativeStackNavigationProp } from "@react-navigation/native-stack";
 import { useQuery } from "@tanstack/react-query";
-import { ChevronRight, FileSpreadsheet, FileText, History, TrendingUp, Scale, ArrowDownLeft, ArrowUpRight, AlertTriangle, CreditCard, Trophy, Mail } from "lucide-react-native";
-import { Dimensions, ScrollView, Text, TouchableOpacity, View } from "react-native";
+import { ChevronRight, FileSpreadsheet, FileText, History, TrendingUp, Scale, ArrowDownLeft, ArrowUpRight, AlertTriangle, CreditCard, Trophy, Mail, CalendarDays, Calculator, Flag, Sparkles } from "lucide-react-native";
+import { Dimensions, Text, TouchableOpacity, View } from "react-native";
 import { LineChart, PieChart, ProgressChart } from "react-native-chart-kit";
 import { api } from "../../api/client";
 import { Screen } from "../../components/Screen";
@@ -92,8 +92,7 @@ export const ReportsScreen = () => {
 
   return (
     <Screen className="pt-5">
-      <ScrollView showsVerticalScrollIndicator={false} contentContainerStyle={{ paddingBottom: 40 }}>
-        {/* --- Header Section --- */}
+      {/* --- Header Section --- */}
         <View className="flex-row items-center justify-between">
           <View>
             <Text className="text-2xl font-black text-dark" style={{ fontFamily: fontFamily.extraBold }}>Reports & Analytics</Text>
@@ -264,6 +263,18 @@ export const ReportsScreen = () => {
                 { title: "Savings Progress", subtitle: "Targets, progress and active goals.", icon: Trophy, route: "SavingsProgressReport" as const },
                 { title: "Cash Flow Trend", subtitle: "Inflow, outflow and net movement.", icon: TrendingUp, route: "CashFlowTrendReport" as const },
                 { title: "Money Payment Methods", subtitle: "All cash-flow methods by inflow and outflow.", icon: CreditCard, route: "PaymentMethodBreakdownFinance" as const },
+                { title: "Cash Forecast", subtitle: "Projected cycle cash and upcoming outflows.", icon: TrendingUp, route: "CashForecast" as const },
+                { title: "Finance Calendar", subtitle: "Bills, salary, promises and goal dates.", icon: CalendarDays, route: "FinanceCalendar" as const },
+                { title: "Monthly Review", subtitle: "Cycle highlights, warnings and cash result.", icon: History, route: "MonthlyReview" as const },
+                { title: "Review History", subtitle: "Past cycle reviews and snapshots.", icon: FileText, route: "ReviewHistory" as const },
+                { title: "What Changed", subtitle: "Compare current cycle with previous cycle.", icon: Sparkles, route: "WhatChanged" as const },
+                { title: "Money Health Score", subtitle: "Personal finance health and suggestions.", icon: Scale, route: "MoneyHealthScore" as const },
+                { title: "Scenario Planner", subtitle: "Simulate purchases, saving and salary delays.", icon: Calculator, route: "ScenarioPlanner" as const },
+                { title: "Data Quality Assistant", subtitle: "Fix missing categories, due dates and contact info.", icon: AlertTriangle, route: "DataQualityAssistant" as const },
+                { title: "Spending Insights", subtitle: "Habits, category trends and spikes.", icon: Sparkles, route: "SpendingInsights" as const },
+                { title: "Budget Recommendations", subtitle: "Smart budgets based on history.", icon: FileSpreadsheet, route: "BudgetRecommendations" as const },
+                { title: "Affordability Check", subtitle: "Can I afford this planned purchase?", icon: Calculator, route: "AffordabilityCalculator" as const },
+                { title: "Financial Goals", subtitle: "Goal planner and monthly savings target.", icon: Flag, route: "FinancialGoals" as const },
               ].map((item) => {
                 const Icon = item.icon;
                 return (
@@ -383,7 +394,6 @@ export const ReportsScreen = () => {
             </View>
           </View>
         ) : null}
-      </ScrollView>
     </Screen>
   );
 };

@@ -73,6 +73,17 @@
       ],
       "@react-native-community/datetimepicker",
       [
+        "expo-speech-recognition",
+        {
+          "microphonePermission": "Allow Loan Tracker to use the microphone for private voice entry.",
+          "speechRecognitionPermission": "Allow Loan Tracker to convert your speech into text for smart entry.",
+          "androidSpeechServicePackages": [
+            "com.google.android.googlequicksearchbox",
+            "com.google.android.as"
+          ]
+        }
+      ],
+      [
         "expo-splash-screen",
         {
           "backgroundColor": "#fffaf4",

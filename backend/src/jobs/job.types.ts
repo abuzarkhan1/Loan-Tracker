@@ -40,6 +40,20 @@ export type SalaryJobPayload = {
   date?: string;
 };
 
+export type BillJobPayload = {
+  userId?: string;
+  billId?: string;
+};
+
+export type RecurringTransactionJobPayload = {
+  userId?: string;
+  recurringTransactionId?: string;
+};
+
+export type AlertJobPayload = {
+  userId?: string;
+};
+
 export type CleanupJobPayload = {
   scope: "TEMP_FILES" | "OLD_LOGS";
   olderThanHours?: number;
@@ -67,5 +81,8 @@ export type QueueJobPayload =
   | { name: typeof jobNames.receiptPdf; data: ReceiptJobPayload }
   | { name: typeof jobNames.sendEmail; data: EmailJobPayload }
   | { name: typeof jobNames.createExpectedSalary; data: SalaryJobPayload }
+  | { name: typeof jobNames.generateBillOccurrences; data: BillJobPayload }
+  | { name: typeof jobNames.generateRecurringOccurrences; data: RecurringTransactionJobPayload }
+  | { name: typeof jobNames.evaluateAlerts; data: AlertJobPayload }
   | { name: typeof jobNames.cleanupTempFiles; data: CleanupJobPayload }
   | { name: typeof jobNames.writeAuditLog; data: AuditJobPayload };

@@ -3,6 +3,7 @@ import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { Edit3, ExternalLink, Trash2 } from "lucide-react-native";
 import { Text, View } from "react-native";
 import { api } from "../../api/client";
+import { AmountText } from "../../components/AmountText";
 import { AppButton } from "../../components/AppButton";
 import { Screen } from "../../components/Screen";
 import { ErrorState, LoadingState } from "../../components/StateViews";
@@ -11,7 +12,7 @@ import { showAlert } from "../../providers/AlertProvider";
 import { useAppTheme } from "../../providers/ThemeProvider";
 import { categoryName, contactName, loanLabel, transactionTypeLabels } from "../../utils/finance";
 import { getErrorMessage } from "../../utils/errors";
-import { formatCurrency, formatDateTime } from "../../utils/format";
+import { formatDateTime } from "../../utils/format";
 import { fontFamily } from "../../utils/theme";
 
 type Props = NativeStackScreenProps<RootStackParamList, "TransactionDetail">;
@@ -62,9 +63,7 @@ export const TransactionDetailScreen = ({ navigation, route }: Props) => {
     <Screen className="gap-5 pt-5">
       <View className="rounded-3xl border border-border bg-card p-5" style={theme.shadowSoft}>
         <Text className="text-xs font-black uppercase text-muted">{transactionTypeLabels[transaction.type]}</Text>
-        <Text className="mt-2 text-3xl font-black text-dark" style={{ fontFamily: fontFamily.extraBold }}>
-          {formatCurrency(transaction.amount)}
-        </Text>
+        <AmountText amount={transaction.amount} className="mt-2 text-3xl font-black text-dark" style={{ fontFamily: fontFamily.extraBold }} />
         <Text className="mt-1 text-sm font-semibold text-muted">{formatDateTime(transaction.date)}</Text>
       </View>
 

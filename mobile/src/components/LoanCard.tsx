@@ -1,8 +1,9 @@
 import { Text, TouchableOpacity, View } from "react-native";
 import { Loan } from "../api/types";
 import { useAppTheme } from "../providers/ThemeProvider";
-import { formatCurrency, formatDate, getProgress } from "../utils/format";
+import { formatDate, getProgress } from "../utils/format";
 import { fontFamily } from "../utils/theme";
+import { AmountText } from "./AmountText";
 import { ProgressBar } from "./ProgressBar";
 import { StatusBadge } from "./StatusBadge";
 
@@ -43,14 +44,19 @@ export const LoanCard = ({ loan, onPress }: { loan: Loan; onPress: () => void })
       <View className="mt-4 gap-2">
         <View className="flex-row justify-between">
           <Text style={{ color: theme.muted, fontFamily: fontFamily.bold, fontSize: 12 }}>Paid {progress}%</Text>
-          <Text style={{ color: theme.muted, fontFamily: fontFamily.bold, fontSize: 12 }}>Baqi Raqam {formatCurrency(loan.remainingAmount)}</Text>
+          <AmountText
+            amount={loan.remainingAmount}
+            prefix="Baqi Raqam "
+            hiddenLabel="Baqi Raqam Rs. ****"
+            style={{ color: theme.muted, fontFamily: fontFamily.bold, fontSize: 12 }}
+          />
         </View>
         <ProgressBar progress={progress} />
       </View>
 
       <View className="mt-4 flex-row justify-between">
-        <Text style={{ color: theme.text, fontFamily: fontFamily.bold, fontSize: 14 }}>{formatCurrency(loan.amount)}</Text>
-        <Text style={{ color: theme.success, fontFamily: fontFamily.bold, fontSize: 14 }}>{formatCurrency(loan.paidAmount)}</Text>
+        <AmountText amount={loan.amount} style={{ color: theme.text, fontFamily: fontFamily.bold, fontSize: 14 }} />
+        <AmountText amount={loan.paidAmount} style={{ color: theme.success, fontFamily: fontFamily.bold, fontSize: 14 }} />
       </View>
     </TouchableOpacity>
   );

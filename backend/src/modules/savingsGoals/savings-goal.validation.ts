@@ -1,14 +1,17 @@
 import { z } from "zod";
 import { objectIdSchema } from "../contacts/contact.validation";
-import { SAVINGS_GOAL_STATUSES } from "./savings-goal.model";
+import { SAVINGS_GOAL_PRIORITIES, SAVINGS_GOAL_STATUSES, SAVINGS_GOAL_TYPES } from "./savings-goal.model";
 
 const body = z.object({
   name: z.string().trim().min(2).max(100),
+  type: z.enum(SAVINGS_GOAL_TYPES).default("CUSTOM"),
   targetAmount: z.coerce.number().positive(),
   currentAmount: z.coerce.number().min(0).default(0),
   monthlyTarget: z.coerce.number().min(0).optional(),
   deadline: z.coerce.date().optional(),
+  priority: z.enum(SAVINGS_GOAL_PRIORITIES).default("MEDIUM"),
   status: z.enum(SAVINGS_GOAL_STATUSES).default("ACTIVE"),
+  autoContributionEnabled: z.coerce.boolean().default(false),
 });
 
 export const createSavingsGoalSchema = z.object({ body });

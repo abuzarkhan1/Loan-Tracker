@@ -7,6 +7,9 @@ import { cleanupQueue, cleanupQueueEvents } from "./cleanup.queue";
 import { auditQueue, auditQueueEvents } from "./audit.queue";
 import { emailQueue, emailQueueEvents } from "./email.queue";
 import { salaryQueue, salaryQueueEvents, scheduleSalaryQueueJobs } from "./salary.queue";
+import { billQueue, billQueueEvents, scheduleBillQueueJobs } from "./bill.queue";
+import { recurringTransactionQueue, recurringTransactionQueueEvents, scheduleRecurringTransactionQueueJobs } from "./recurring-transaction.queue";
+import { alertQueue, alertQueueEvents, scheduleAlertQueueJobs } from "./alert.queue";
 
 export const queues = {
   notificationQueue,
@@ -15,6 +18,9 @@ export const queues = {
   auditQueue,
   emailQueue,
   salaryQueue,
+  billQueue,
+  recurringTransactionQueue,
+  alertQueue,
 };
 
 const queueEvents: QueueEvents[] = [
@@ -24,6 +30,9 @@ const queueEvents: QueueEvents[] = [
   auditQueueEvents,
   emailQueueEvents,
   salaryQueueEvents,
+  billQueueEvents,
+  recurringTransactionQueueEvents,
+  alertQueueEvents,
 ];
 
 export const getQueueHealth = async () => {
@@ -63,4 +72,7 @@ export const scheduleQueueJobs = async () => {
   }
 
   await scheduleSalaryQueueJobs();
+  await scheduleBillQueueJobs();
+  await scheduleRecurringTransactionQueueJobs();
+  await scheduleAlertQueueJobs();
 };
