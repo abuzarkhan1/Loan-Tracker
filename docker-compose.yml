@@ -12,7 +12,14 @@ services:
       NODE_ENV: production
       PORT: 5050
       MONGODB_URI: ${MONGODB_URI:-mongodb://127.0.0.1:27017/loan_tracker}
+      REDIS_ENABLED: "true"
+      REDIS_HOST: 127.0.0.1
+      REDIS_PORT: 6379
+      REDIS_CACHE_DB: 0
+      REDIS_QUEUE_DB: 1
     network_mode: host
+    volumes:
+      - ./backend/uploads:/app/uploads
     healthcheck:
       test:
         [
